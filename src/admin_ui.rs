@@ -369,7 +369,7 @@ mod tests {
                 "icon must be a Material code point (hex)"
             );
             assert!(v["scope"].as_str().unwrap().starts_with("exchange8:"));
-            assert!(v["sections"].as_array().unwrap().len() >= 1);
+            assert!(!v["sections"].as_array().unwrap().is_empty());
             for s in v["sections"].as_array().unwrap() {
                 assert!(s["resource"].is_string());
             }
@@ -402,8 +402,7 @@ mod tests {
         // SCOPE_MIRROR_POLICIES vocabulary).
         for p in refdata_pages() {
             assert!(
-                p.scope == "exchange8:refdata:read"
-                    || p.scope == "exchange8:corporate-action:read",
+                p.scope == "exchange8:refdata:read" || p.scope == "exchange8:corporate-action:read",
                 "{}: page scope {} is not a declared mirror action",
                 p.slug,
                 p.scope

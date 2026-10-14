@@ -225,7 +225,6 @@ fn next_stage_key(stage: &str) -> Option<&'static str> {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;

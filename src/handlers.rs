@@ -220,7 +220,12 @@ pub async fn create_security(
     })?;
     // Durability pair on the SAME tx: outbox envelope (payload-complete —
     // the full row snapshot) + audit journal row.
-    let identity = event_identity(a.env_id(), &a.claims.sub, &correlation_id, &row.id.to_string());
+    let identity = event_identity(
+        a.env_id(),
+        &a.claims.sub,
+        &correlation_id,
+        &row.id.to_string(),
+    );
     let envelope = crate::events::security_event(
         crate::events::EVSecurity::Created,
         &serde_json::to_value(&row).map_err(err_db_json)?,
@@ -369,7 +374,10 @@ pub async fn create_market(
         ));
     }
     if req.name.trim().is_empty() {
-        return Err((StatusCode::UNPROCESSABLE_ENTITY, "name must not be empty".into()));
+        return Err((
+            StatusCode::UNPROCESSABLE_ENTITY,
+            "name must not be empty".into(),
+        ));
     }
     let correlation_id = correlation_from(&headers);
     let mut conn = state.pool.acquire().await.map_err(err_db)?;
@@ -402,10 +410,16 @@ pub async fn create_market(
             StatusCode::CONFLICT,
             format!("duplicate market code {}", req.code),
         ),
-        sqlx::Error::Database(db) if db.constraint().is_some_and(|c| c.contains("market_type") || c.contains("market_mode")) => (
-            StatusCode::UNPROCESSABLE_ENTITY,
-            "unknown market_type or market_mode vocabulary".into(),
-        ),
+        sqlx::Error::Database(db)
+            if db
+                .constraint()
+                .is_some_and(|c| c.contains("market_type") || c.contains("market_mode")) =>
+        {
+            (
+                StatusCode::UNPROCESSABLE_ENTITY,
+                "unknown market_type or market_mode vocabulary".into(),
+            )
+        }
         other => err_db(other),
     })?;
     emit_market_mutation(
@@ -476,10 +490,16 @@ pub async fn update_market(
     .await
     .map_err(|e| match e {
         sqlx::Error::RowNotFound => (StatusCode::NOT_FOUND, "market not found".into()),
-        sqlx::Error::Database(db) if db.constraint().is_some_and(|c| c.contains("market_type") || c.contains("market_mode")) => (
-            StatusCode::UNPROCESSABLE_ENTITY,
-            "unknown market_type or market_mode vocabulary".into(),
-        ),
+        sqlx::Error::Database(db)
+            if db
+                .constraint()
+                .is_some_and(|c| c.contains("market_type") || c.contains("market_mode")) =>
+        {
+            (
+                StatusCode::UNPROCESSABLE_ENTITY,
+                "unknown market_type or market_mode vocabulary".into(),
+            )
+        }
         other => err_db(other),
     })?;
     emit_market_mutation(
@@ -505,8 +525,7 @@ async fn emit_market_mutation(
     op: crate::events::MarketOp,
     row: &MarketResponse,
 ) -> Result<(), (StatusCode, String)> {
-    let identity =
-        event_identity(env_id, subject, correlation_id, &row.id.to_string());
+    let identity = event_identity(env_id, subject, correlation_id, &row.id.to_string());
     let snapshot = serde_json::to_value(row).map_err(err_db_json)?;
     let envelope = crate::events::market_event(op, &snapshot, &identity);
     crate::events::emit_outbox(ctx, &identity, &envelope)
@@ -715,32 +734,26 @@ pub async fn delete_security(
     let Some(before) = before else {
         return Err((StatusCode::NOT_FOUND, "security not found".into()));
     };
-    let result = sqlx::query(
-        "DELETE FROM refdata.security WHERE env_id = $1 AND id = $2",
-    )
-    .bind(a.env_id())
-    .bind(id)
-    .execute(&mut *ctx)
-    .await
-    .map_err(|e| match e {
-        sqlx::Error::Database(db) if db.constraint().is_some() => (
-            StatusCode::CONFLICT,
-            "security is referenced and cannot be deleted \
+    let result = sqlx::query("DELETE FROM refdata.security WHERE env_id = $1 AND id = $2")
+        .bind(a.env_id())
+        .bind(id)
+        .execute(&mut *ctx)
+        .await
+        .map_err(|e| match e {
+            sqlx::Error::Database(db) if db.constraint().is_some() => (
+                StatusCode::CONFLICT,
+                "security is referenced and cannot be deleted \
              (delist via permanently_delisted instead)"
-                .into(),
-        ),
-        other => err_db(other),
-    })?;
+                    .into(),
+            ),
+            other => err_db(other),
+        })?;
     if result.rows_affected() == 0 {
         return Err((StatusCode::NOT_FOUND, "security not found".into()));
     }
-    let identity =
-        event_identity(a.env_id(), &a.claims.sub, &correlation_id, &id.to_string());
-    let envelope = crate::events::security_event(
-        crate::events::EVSecurity::Deleted,
-        &before,
-        &identity,
-    );
+    let identity = event_identity(a.env_id(), &a.claims.sub, &correlation_id, &id.to_string());
+    let envelope =
+        crate::events::security_event(crate::events::EVSecurity::Deleted, &before, &identity);
     crate::events::emit_outbox(&mut ctx, &identity, &envelope)
         .await
         .map_err(err_db)?;
@@ -914,16 +927,15 @@ pub async fn announce_corporate_action(
             if db
                 .constraint()
                 .is_some_and(|c| c.contains("action_type") || c.contains("stage")) =>
-        (
-            StatusCode::UNPROCESSABLE_ENTITY,
-            "unknown corporate-action type vocabulary".into(),
-        ),
-        sqlx::Error::Database(db)
-            if db.constraint().is_some_and(|c| c.contains("security_id")) =>
-        (
-            StatusCode::UNPROCESSABLE_ENTITY,
-            "unknown security".into(),
-        ),
+        {
+            (
+                StatusCode::UNPROCESSABLE_ENTITY,
+                "unknown corporate-action type vocabulary".into(),
+            )
+        }
+        sqlx::Error::Database(db) if db.constraint().is_some_and(|c| c.contains("security_id")) => {
+            (StatusCode::UNPROCESSABLE_ENTITY, "unknown security".into())
+        }
         other => err_db(other),
     })?;
     emit_ca_mutation(
@@ -1152,7 +1164,10 @@ pub async fn create_tick_rule(
     let a = sentin8::shell::verify_token(&state.config, &headers).await?;
     write_gate(&state, &a, &headers).await?;
     if req.name.trim().is_empty() {
-        return Err((StatusCode::UNPROCESSABLE_ENTITY, "name must not be empty".into()));
+        return Err((
+            StatusCode::UNPROCESSABLE_ENTITY,
+            "name must not be empty".into(),
+        ));
     }
     if req.bands.is_empty() {
         return Err((
@@ -1189,7 +1204,12 @@ pub async fn create_tick_rule(
         .await
         .map_err(err_db)?;
     }
-    let identity = event_identity(a.env_id(), &a.claims.sub, &correlation_id, &row.id.to_string());
+    let identity = event_identity(
+        a.env_id(),
+        &a.claims.sub,
+        &correlation_id,
+        &row.id.to_string(),
+    );
     let envelope = crate::events::simple_event(
         crate::events::EV_TICK_RULE_CREATED,
         &identity,
@@ -1300,7 +1320,10 @@ pub async fn create_holiday(
     let a = sentin8::shell::verify_token(&state.config, &headers).await?;
     write_gate(&state, &a, &headers).await?;
     if req.name.trim().is_empty() {
-        return Err((StatusCode::UNPROCESSABLE_ENTITY, "name must not be empty".into()));
+        return Err((
+            StatusCode::UNPROCESSABLE_ENTITY,
+            "name must not be empty".into(),
+        ));
     }
     let correlation_id = correlation_from(&headers);
     let mut conn = state.pool.acquire().await.map_err(err_db)?;
@@ -1329,7 +1352,12 @@ pub async fn create_holiday(
         .await
         .map_err(err_db)?;
     }
-    let identity = event_identity(a.env_id(), &a.claims.sub, &correlation_id, &row.id.to_string());
+    let identity = event_identity(
+        a.env_id(),
+        &a.claims.sub,
+        &correlation_id,
+        &row.id.to_string(),
+    );
     let envelope = crate::events::simple_event(
         crate::events::EV_HOLIDAY_CREATED,
         &identity,
@@ -1414,13 +1442,17 @@ pub async fn create_book_connection(
             StatusCode::UNPROCESSABLE_ENTITY,
             "book_connection status must be 'E' or 'D'".into(),
         ),
-        sqlx::Error::Database(db) if db.constraint().is_some_and(|c| c.contains("book_id")) => (
-            StatusCode::UNPROCESSABLE_ENTITY,
-            "unknown book".into(),
-        ),
+        sqlx::Error::Database(db) if db.constraint().is_some_and(|c| c.contains("book_id")) => {
+            (StatusCode::UNPROCESSABLE_ENTITY, "unknown book".into())
+        }
         other => err_db(other),
     })?;
-    let identity = event_identity(a.env_id(), &a.claims.sub, &correlation_id, &row.id.to_string());
+    let identity = event_identity(
+        a.env_id(),
+        &a.claims.sub,
+        &correlation_id,
+        &row.id.to_string(),
+    );
     let snapshot = serde_json::to_value(&row).map_err(err_db_json)?;
     let envelope = crate::events::simple_event(
         crate::events::EV_BOOK_CONNECTION_CREATED,
@@ -1521,13 +1553,9 @@ pub async fn internal_schedules_run(
         .correlation_id
         .clone()
         .unwrap_or_else(|| body.schedule_id.map(|s| s.to_string()).unwrap_or_default());
-    let advanced = crate::worker::advance_due_transitions(
-        &state,
-        body.env_id,
-        &a.claims.sub,
-        &correlation_id,
-    )
-    .await?;
+    let advanced =
+        crate::worker::advance_due_transitions(&state, body.env_id, &a.claims.sub, &correlation_id)
+            .await?;
     Ok(Json(serde_json::json!({
         "schedule_type": body.schedule_type,
         "env_id": body.env_id,
@@ -1562,7 +1590,10 @@ mod scope_matrix {
         ("announce_corporate_action", &[scopes::CA_WRITE]),
         ("cancel_corporate_action", &[scopes::CA_WRITE]),
         ("list_ca_calendar", &[scopes::CA_READ]),
-        ("list_tick_rules", &[scopes::REFDATA_READ, scopes::ORDERS_READ]),
+        (
+            "list_tick_rules",
+            &[scopes::REFDATA_READ, scopes::ORDERS_READ],
+        ),
         ("create_tick_rule", &[scopes::REFDATA_WRITE]),
         ("update_tick_rule", &[scopes::REFDATA_WRITE]),
         ("create_holiday", &[scopes::REFDATA_WRITE]),

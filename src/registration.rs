@@ -250,15 +250,13 @@ pub fn print(section: Option<String>) -> anyhow::Result<()> {
         // the cron clock drives due-stage advancement; the proxy-back
         // handler runs the stage-predicated transition worker. Constants in
         // `worker.rs` keep the contract honest.
-        schedules: &[
-            ScheduleDecl {
-                schedule_type: "refdata-ca-transitions",
-                cron_expression: "*/5 * * * *",
-                timezone: "UTC",
-                target_config: r#"{"internalPath": "/v1/internal/schedules/run", "scheduleType": "refdata-ca-transitions"}"#,
-                max_retries: 3,
-            },
-        ],
+        schedules: &[ScheduleDecl {
+            schedule_type: "refdata-ca-transitions",
+            cron_expression: "*/5 * * * *",
+            timezone: "UTC",
+            target_config: r#"{"internalPath": "/v1/internal/schedules/run", "scheduleType": "refdata-ca-transitions"}"#,
+            max_retries: 3,
+        }],
     };
     sentin8::registration::print_registration(section, &reg, empty_openapi)
 }

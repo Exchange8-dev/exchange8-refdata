@@ -20,14 +20,14 @@
 //! `crate::admin_ui`) ride the same includes so the `crate::` paths
 //! resolve identically to the binary.
 
-#[path = "../src/events.rs"]
-mod events;
 #[path = "../src/admin_ui.rs"]
 mod admin_ui;
-#[path = "../src/worker.rs"]
-mod worker;
+#[path = "../src/events.rs"]
+mod events;
 #[path = "../src/handlers.rs"]
 mod handlers;
+#[path = "../src/worker.rs"]
+mod worker;
 
 use std::sync::Arc;
 
@@ -52,7 +52,10 @@ fn router() -> axum::Router {
             "/v1/markets",
             axum::routing::get(handlers::list_markets).post(handlers::create_market),
         )
-        .route("/v1/markets/{id}", axum::routing::put(handlers::update_market))
+        .route(
+            "/v1/markets/{id}",
+            axum::routing::put(handlers::update_market),
+        )
         .route(
             "/v1/corporate-actions",
             axum::routing::get(handlers::list_corporate_actions)
@@ -74,12 +77,18 @@ fn router() -> axum::Router {
             "/v1/tick-rules/{id}",
             axum::routing::put(handlers::update_tick_rule),
         )
-        .route("/v1/holidays", axum::routing::post(handlers::create_holiday))
+        .route(
+            "/v1/holidays",
+            axum::routing::post(handlers::create_holiday),
+        )
         .route(
             "/v1/books/connections",
             axum::routing::post(handlers::create_book_connection),
         )
-        .route("/v1/admin/ui/{page}", axum::routing::get(handlers::admin_ui_page))
+        .route(
+            "/v1/admin/ui/{page}",
+            axum::routing::get(handlers::admin_ui_page),
+        )
         .route(
             "/v1/admin/securities",
             axum::routing::get(handlers::list_securities).post(handlers::create_security),

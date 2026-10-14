@@ -91,8 +91,7 @@ pub const EV_TICK_RULE_CREATED: &str = "exchange8:refdata:tick-rule:created";
 pub const EV_TICK_RULE_UPDATED: &str = "exchange8:refdata:tick-rule:updated";
 /// `exchange8:refdata:book-connection:created` — a book↔connection
 /// membership row was inserted.
-pub const EV_BOOK_CONNECTION_CREATED: &str =
-    "exchange8:refdata:book-connection:created";
+pub const EV_BOOK_CONNECTION_CREATED: &str = "exchange8:refdata:book-connection:created";
 /// `exchange8:refdata:holiday:created` — a holiday row was inserted.
 pub const EV_HOLIDAY_CREATED: &str = "exchange8:refdata:holiday:created";
 
@@ -116,11 +115,7 @@ pub struct EventIdentity {
 /// Envelope for a security mutation: the FULL row snapshot (the exact
 /// `SecurityResponse` fields) — consumers (ME, vfeeds, RFQ) re-key their
 /// caches without a read-back.
-pub fn security_event(
-    ev: EVSecurity,
-    sec: &serde_json::Value,
-    identity: &EventIdentity,
-) -> Value {
+pub fn security_event(ev: EVSecurity, sec: &serde_json::Value, identity: &EventIdentity) -> Value {
     json!({
         "event_type": ev_name(ev),
         "env_id": identity.env_id,
@@ -201,11 +196,7 @@ pub enum CaOp {
 /// Envelope with the caller-provided snapshot for the smaller surfaces
 /// (tick rule, holiday, book connection) — same completeness contract,
 /// fewer columns to project.
-pub fn simple_event(
-    event_type: &'static str,
-    identity: &EventIdentity,
-    snapshot: Value,
-) -> Value {
+pub fn simple_event(event_type: &'static str, identity: &EventIdentity, snapshot: Value) -> Value {
     json!({
         "event_type": event_type,
         "env_id": identity.env_id,

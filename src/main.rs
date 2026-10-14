@@ -58,7 +58,10 @@ fn extend_router(
             "/v1/markets",
             axum::routing::get(handlers::list_markets).post(handlers::create_market),
         )
-        .route("/v1/markets/{id}", axum::routing::put(handlers::update_market))
+        .route(
+            "/v1/markets/{id}",
+            axum::routing::put(handlers::update_market),
+        )
         .route(
             "/v1/corporate-actions",
             axum::routing::get(handlers::list_corporate_actions)
