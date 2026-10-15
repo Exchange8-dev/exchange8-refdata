@@ -3,7 +3,7 @@
 // SPDX-FileCopyrightText: Copyright Contributors to the Exchange8:Refdata
 // SPDX-License-Identifier: Apache-2.0
 
-//! Ex8:RefData data handlers — securities reference-data API.
+//! Exchange8:RefData data handlers — securities reference-data API.
 //!
 //! Every handler follows the platform authorization pipeline (§5): verify
 //! bearer → scope check → RLS context (same connection) → explicit
@@ -605,7 +605,7 @@ async fn ca_gate(
 }
 
 /// `PUT /v1/securities/{id}` — update mutable security fields. Halting/
-/// trading-state changes are Ex8:ME's (market control) — the refdata
+/// trading-state changes are Exchange8:ME's (market control) — the refdata
 /// update path carries identity/precision/book fields only.
 #[allow(clippy::too_many_arguments)]
 pub async fn update_security(

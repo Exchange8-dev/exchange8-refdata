@@ -3,7 +3,7 @@
 // SPDX-FileCopyrightText: Copyright Contributors to the Exchange8:Refdata
 // SPDX-License-Identifier: Apache-2.0
 
-//! Ex8:RefData typed event envelopes (DBX producer path).
+//! Exchange8:RefData typed event envelopes (DBX producer path).
 //!
 //! Every mutating handler writes an outbox row in the SAME transaction as
 //! the domain change with a **payload-complete** envelope (event-first rule
@@ -80,7 +80,7 @@ pub const EV_CA_ANNOUNCED: &str = "exchange8:refdata:corporate-action:announced"
 /// moved one stage forward (cron transition worker).
 pub const EV_CA_STAGE_ADVANCED: &str = "exchange8:refdata:corporate-action:stage-advanced";
 /// `exchange8:refdata:corporate-action:completed` — the CA reached
-/// `pay_date` (terminal stage; delivery handoff to Ex8:Settlement).
+/// `pay_date` (terminal stage; delivery handoff to Exchange8:Settlement).
 pub const EV_CA_COMPLETED: &str = "exchange8:refdata:corporate-action:completed";
 /// `exchange8:refdata:corporate-action:cancelled` — a CA was withdrawn
 /// by an operator before completion.

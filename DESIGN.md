@@ -1,8 +1,8 @@
-# DESIGN.md: Ex8:RefData — Detailed Design Document
+# DESIGN.md: Exchange8:RefData — Detailed Design Document
 
 ## 1. Scope & Context
 
-**Owned by Ex8:RefData** — PostgreSQL schema `refdata` inside the vertical
+**Owned by Exchange8:RefData** — PostgreSQL schema `refdata` inside the vertical
 database `exchange8` (database-per-vertical, schema-per-service), the domain
 APIs over those tables, the local `refdata.outbox` + `refdata.audit_journal`
 durability pairs, and the Shield scope-mirror policy set for action
@@ -27,9 +27,9 @@ durability pairs, and the Shield scope-mirror policy set for action
 (HTTP 404); PostgreSQL role `exchange8_refdata_service` (no BYPASSRLS, db
 `exchange8` only); DSN env var `EXCHANGE8_REFDATA_DATABASE_URL`.
 
-**Not owned (delegations)** — trade ledger and busts (Ex8:Clearing), matching
-(Ex8:ME), settlement delivery of cash/stock entitlements (Ex8:Settlement),
-margin treatment (Ex8:Margin), corporate-action lifecycle *transitions*
+**Not owned (delegations)** — trade ledger and busts (Exchange8:Clearing), matching
+(Exchange8:ME), settlement delivery of cash/stock entitlements (Exchange8:Settlement),
+margin treatment (Exchange8:Margin), corporate-action lifecycle *transitions*
 (Sentin8:Cron), position adjustment application (consumed from
 `exchange8:clearing:position:adjusted`), event transport and stream storage
 (Sentin8:Bus), audit ingest (Sentin8:Sys), FDX/currency cross-references for
@@ -40,10 +40,10 @@ RFQ FX pairs (read-only declared grants FROM rfq ONTO this schema, not owned).
 ```mermaid
 graph TD
     subgraph Vertical["exchange8 vertical - db exchange8"]
-        RD["Ex8:RefData - schema refdata"]
-        ME["Ex8:ME"]
-        VF["Ex8:VFeeds"]
-        RFQ["Ex8:RFQ"]
+        RD["Exchange8:RefData - schema refdata"]
+        ME["Exchange8:ME"]
+        VF["Exchange8:VFeeds"]
+        RFQ["Exchange8:RFQ"]
     end
     subgraph Platform["Sentin8 platform"]
         AUTH["Sentin8:Auth - identity plane, JWKS, DCR"]
@@ -527,13 +527,13 @@ Per-table notes:
   reference data and corporate-action *parameters* only; provider or session
   credentials do not exist here.
 - `refdata.security` is the FK anchor for the vertical: `contract_id`
-  extends to futures/options (Ex8:Margin-owned rows) and `asset_id` to the
+  extends to futures/options (Exchange8:Margin-owned rows) and `asset_id` to the
   crypto extension; `price_scale`/`qty_scale` are the D13 fixed-point
   contract the matching engine and market data re-key against.
 - `refdata.currency.code` is a TEXT PK (3-letter ISO) referenced by
   `refdata.security.currency` — a duplicate/unknown currency surfaces as a
   422 on security create; `lis_exchange_rate` carries the LIS FX rate
-  (Ex8:RFQ declares a SELECT grant on it).
+  (Exchange8:RFQ declares a SELECT grant on it).
 - `refdata.book_connection.connection_id` holds gateway-owned comp ids —
   membership data, not credentials.
 - `refdata.corporate_action_entitlement` is the record-date snapshot
@@ -548,7 +548,7 @@ stateDiagram-v2
     announced --> ex_date : cron transition at ex-date
     ex_date --> record_date : cron transition at record-date
     record_date --> pay_date : cron transition at pay-date
-    pay_date --> [*] : terminal - delivery executed by Ex8:Settlement
+    pay_date --> [*] : terminal - delivery executed by Exchange8:Settlement
     note right of announced : adjustments to positions apply at ex-date via exchange8:clearing:position:adjusted consumers
     note right of record_date : entitlement snapshot rows written at record-date
 ```
@@ -941,9 +941,9 @@ graph TD
   into the schema's `security_type='Crypto'` + `asset_id` extension only.
 - **Event-driven position adjustments + entitlements**: the transition
   worker emits the lifecycle events (announced/stage-advanced/completed),
-  but the ex-date position-adjustment projector (Ex8:Clearing consuming
+  but the ex-date position-adjustment projector (Exchange8:Clearing consuming
   `exchange8:clearing:position:adjusted`), the record-date entitlement
-  snapshot writer, and the pay-date delivery handoff to Ex8:Settlement
+  snapshot writer, and the pay-date delivery handoff to Exchange8:Settlement
   remain the CONSUMING services' wiring — this service owns the calendar
   and the events, not the consumers.
 - **Customer/location/contact/trader/capitalization APIs**: the tables are

@@ -3,7 +3,7 @@
 // SPDX-FileCopyrightText: Copyright Contributors to the Exchange8:Refdata
 // SPDX-License-Identifier: Apache-2.0
 
-//! Ex8:REFDATA service binary — instrument reference data + corporate actions.
+//! Exchange8:REFDATA service binary — instrument reference data + corporate actions.
 //!
 //! Detailed design: services/refdata/DESIGN.md. Master design:
 //! `design/sentin8-exchange8-refdata-technical-design.md`. Core logic in

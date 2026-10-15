@@ -3,7 +3,7 @@
 // SPDX-FileCopyrightText: Copyright Contributors to the Exchange8:Refdata
 // SPDX-License-Identifier: Apache-2.0
 
-//! Ex8:RefData cross-reference + CA calendar/entitlements (see DESIGN.md §2).
+//! Exchange8:RefData cross-reference + CA calendar/entitlements (see DESIGN.md §2).
 //!
 //! - **Reference-data cross-reference**: symbol/ISIN/CUSIP/SEDOL
 //!   resolution — many-to-one identifiers to one security, with

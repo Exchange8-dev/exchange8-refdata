@@ -1,7 +1,7 @@
-# BUSINESS.md: Ex8:RefData — Business Requirements & Functionality
+# BUSINESS.md: Exchange8:RefData — Business Requirements & Functionality
 
 > Audience: product owners, business analysts, and anyone evaluating what
-> Ex8:RefData **does for the business**. For architecture read `README.md`;
+> Exchange8:RefData **does for the business**. For architecture read `README.md`;
 > for wire-level detail read `DESIGN.md`.
 
 ## 1. Business Purpose
@@ -48,17 +48,17 @@
 
 | Concern | Owning service |
 |---|---|
-| Trade capture, trade ledger, trade busts | Ex8:Clearing |
-| Order matching and instrument halt/resume execution | Ex8:ME |
-| Delivery of cash/stock entitlements | Ex8:Settlement |
-| Margin and collateral treatment (futures/options) | Ex8:Margin |
-| Order-management state and client orders | Ex8:OMS |
-| Market-data publication and replay | Ex8:MD |
-| Venue feed adapters and external data ingest | Ex8:VFeeds |
-| Smart order routing | Ex8:SOR |
-| Surveillance detection and case actions | Ex8:Surveillance |
-| Regulatory reporting | Ex8:Regulatory |
-| FX pair quotes and RFQ negotiation | Ex8:RFQ |
+| Trade capture, trade ledger, trade busts | Exchange8:Clearing |
+| Order matching and instrument halt/resume execution | Exchange8:ME |
+| Delivery of cash/stock entitlements | Exchange8:Settlement |
+| Margin and collateral treatment (futures/options) | Exchange8:Margin |
+| Order-management state and client orders | Exchange8:OMS |
+| Market-data publication and replay | Exchange8:MD |
+| Venue feed adapters and external data ingest | Exchange8:VFeeds |
+| Smart order routing | Exchange8:SOR |
+| Surveillance detection and case actions | Exchange8:Surveillance |
+| Regulatory reporting | Exchange8:Regulatory |
+| FX pair quotes and RFQ negotiation | Exchange8:RFQ |
 | Corporate-action stage transitions (scheduling) | Sentin8:Cron |
 | Event transport and durable streams | Sentin8:Bus |
 | Identity, tokens, roles | Sentin8:Auth |
@@ -119,7 +119,7 @@
 | Quantity adjustments | Split multiplies quantity by the ratio; reverse split consolidates; stock dividend adds the ratio; cash actions leave quantity unchanged |
 | Price adjustments | Scales/divides for splits and stock dividends; subtracts cash per share on the ex-date for dividends |
 | Entitlements | Record-date snapshot: cash per share × holding for dividends; new shares per held share for stock actions, spin-offs and rights |
-| Scheduling | Transitions run on Sentin8:Cron; Ex8:Settlement performs delivery on the pay date |
+| Scheduling | Transitions run on Sentin8:Cron; Exchange8:Settlement performs delivery on the pay date |
 
 ### Cross-reference resolution
 
@@ -136,7 +136,7 @@
 | `exchange8:refdata:security:created` / `…:updated` / `…:deleted` | A security row is created/updated/deleted | Emitted (outbox row in the domain transaction; relay pushes to Bus) |
 | `exchange8:refdata:market:created` / `…:updated` | A market row is created/updated | Emitted |
 | `exchange8:refdata:corporate-action:announced` | An action is announced (stage `announced`) | Emitted |
-| `exchange8:refdata:corporate-action:stage-advanced` / `…:completed` | The Sentin8:Cron transition run advances a stage; `completed` = the terminal pay-date handoff to Ex8:Settlement | Emitted per advanced transition |
+| `exchange8:refdata:corporate-action:stage-advanced` / `…:completed` | The Sentin8:Cron transition run advances a stage; `completed` = the terminal pay-date handoff to Exchange8:Settlement | Emitted per advanced transition |
 | `exchange8:refdata:corporate-action:cancelled` | An operator withdraws an action still in `announced` | Emitted |
 | `exchange8:refdata:tick-rule:created` / `…:updated` | Tick rule + bands written | Emitted |
 | `exchange8:refdata:book-connection:created` | A book↔connection membership is registered | Emitted |
@@ -177,7 +177,7 @@ record-date entitlements would be the future inbound surface.
 
 ## 6. Target-User Roles & Use Cases
 
-| Persona | Role/scope | What they do with Ex8:RefData |
+| Persona | Role/scope | What they do with Exchange8:RefData |
 |---|---|---|
 | Exchange operator (env admin) | `exchange8:admin`, refdata write | Creates and maintains securities, markets, books, calendars; declares corporate actions |
 | Platform operations | `sentin8:sys:admin` | Cross-env administration, policy administration, health and upgrade supervision |
@@ -218,8 +218,8 @@ record-date entitlements would be the future inbound surface.
 | Sentin8:Cron | Scheduling of corporate-action lifecycle transitions and calendar-driven work |
 | Sentin8:Shell (sentin8 crate) | Boot order, capped pool, health, middleware, policy-admin mount, relays, TLS library |
 | Sentin8:Dash | Renders the RFW admin pages; Sentin8:BFF proxies all client traffic |
-| Ex8:Settlement | Delivers cash/stock entitlements on the pay date |
-| Ex8:Clearing | Source of position snapshots for entitlement modeling; position adjustments applied there |
+| Exchange8:Settlement | Delivers cash/stock entitlements on the pay date |
+| Exchange8:Clearing | Source of position snapshots for entitlement modeling; position adjustments applied there |
 
 ## 9. Acceptance Criteria
 
@@ -263,9 +263,9 @@ record-date entitlements would be the future inbound surface.
   table-complete but unexposed — which flows need those APIs first
   (onboarding, entitlements, capitalization checks) is a product call.
 - Who is the authoritative source for corporate-action announcements —
-  manual admin entry, an external feed via Ex8:VFeeds, or both — and with
+  manual admin entry, an external feed via Exchange8:VFeeds, or both — and with
   what review/approval workflow before actions become effective.
-- Reconciliation ownership for entitlement snapshots: Ex8:RefData produces
+- Reconciliation ownership for entitlement snapshots: Exchange8:RefData produces
   the ratio math and the record-date transition events; who owns the
   discrepancy report when snapshots diverge from the position ledger.
 - Tenant self-service: may environment admins author their own currencies,

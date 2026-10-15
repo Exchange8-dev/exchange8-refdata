@@ -3,7 +3,7 @@
 // SPDX-FileCopyrightText: Copyright Contributors to the Exchange8:Refdata
 // SPDX-License-Identifier: Apache-2.0
 
-//! Ex8:RefData corporate-action transition worker (Sentin8:Cron-driven).
+//! Exchange8:RefData corporate-action transition worker (Sentin8:Cron-driven).
 //!
 //! Stage transitions are executed by Sentin8:Cron by design — the design
 //! doc (`services/refdata/DESIGN.md` §2, request family 3; master design
@@ -37,7 +37,7 @@
 //! Terminal semantics: `pay_date` is the terminal stage (`Stage::next` is
 //! `None`); reaching it emits `completed` (the Settlement handoff key) and
 //! ends the row's advancement. `announced → ex_date` adjustments apply at
-//! the owning services (Ex8:Clearing consumes the event; this service does
+//! the owning services (Exchange8:Clearing consumes the event; this service does
 //! not write positions — design §1 delegation table).
 
 use sqlx::{Acquire, Row};

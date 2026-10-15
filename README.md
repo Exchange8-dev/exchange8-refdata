@@ -1,8 +1,8 @@
-# README.md: Ex8:RefData
+# README.md: Exchange8:RefData
 
 ## 1. Summary
 
-Ex8:RefData (`exchange8:refdata`, binary `exchange8-refdata`) is the reference-data
+Exchange8:RefData (`exchange8:refdata`, binary `exchange8-refdata`) is the reference-data
 authority of the exchange8 capital-markets vertical: it owns the security master,
 markets, MIC venues, currencies, order books, tick rules, market calendars, the
 customer/firm directory with sites/contacts/traders, security-identifier
@@ -191,7 +191,7 @@ process-wide side effects and both are owned by the Sentin8 Shell.
 
 ## 7. Unresolved Questions / Future Designs
 
-- Event consumers downstream (Ex8:Clearing's ex-date position-adjustment
+- Event consumers downstream (Exchange8:Clearing's ex-date position-adjustment
   projector, the record-date entitlement snapshot) are the consuming
   services' wiring — this service owns the calendar, the events and the
   stage transitions (Sentin8:Cron proxy-back, implemented).

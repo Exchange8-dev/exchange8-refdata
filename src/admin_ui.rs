@@ -3,7 +3,7 @@
 // SPDX-FileCopyrightText: Copyright Contributors to the Exchange8:Refdata
 // SPDX-License-Identifier: Apache-2.0
 
-//! Ex8:Dash RFW admin page definitions.
+//! Exchange8:Dash RFW admin page definitions.
 //!
 //! Each service exposes `GET /v1/admin/ui/{page}` returning an RFW
 //! definition JSON (Sentin8:Dash renders it — services never ship UI code).

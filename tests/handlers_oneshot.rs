@@ -3,7 +3,7 @@
 // SPDX-FileCopyrightText: Copyright Contributors to the Exchange8:Refdata
 // SPDX-License-Identifier: Apache-2.0
 
-//! Ex8:RefData HTTP handler tests (see DESIGN.md §9).
+//! Exchange8:RefData HTTP handler tests (see DESIGN.md §9).
 //!
 //! Drives the REAL router through `tower::ServiceExt::oneshot`: route
 //! mounting, the authorization pipeline (bearer → scope), status codes,
