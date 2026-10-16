@@ -847,7 +847,6 @@ graph LR
 - **Locking**: no explicit locks; short single-statement transactions; RLS
   context is transaction-local so no global mutex exists on the request
   path.
-- **mimalloc** global allocator covers request tasks and all background
   workers.
 
 ## 8. Invariants, Insecure-Defaults Rejected, Unsafe Rationale

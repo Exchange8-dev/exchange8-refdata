@@ -186,7 +186,6 @@ graph TD
   enroll-time dry-run gate.
 
 **Unsafe rationale.** No `unsafe` code exists in this unit; the binary-level
-allocator (`mimalloc`) and the platform PQ-TLS provider are the only
 process-wide side effects and both are owned by the Sentin8 Shell.
 
 ## 7. Unresolved Questions / Future Designs

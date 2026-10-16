@@ -2,7 +2,11 @@
   "vertical": "exchange8",
   "services": [
     {
-      "service_type": "exchange8:refdata"
+      "service_type": "exchange8:refdata",
+      "telemetry_property": {
+        "slug": "refdata",
+        "name": "Exchange8:Refdata Telemetry"
+      }
     }
   ]
 }
