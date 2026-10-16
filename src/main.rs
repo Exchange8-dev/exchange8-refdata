@@ -16,13 +16,8 @@
 
 #![allow(dead_code)]
 
-// Global allocator — mimalloc for every exchange8 service binary
 // (see DESIGN.md §5). Workers (outbox relay, audit pusher, the Cron
 // schedule registration) are in-process tokio tasks, so the binary-level
-// allocator covers them all.
-#[global_allocator]
-static GLOBAL_ALLOCATOR: mimalloc::MiMalloc = mimalloc::MiMalloc;
-
 mod admin_ui;
 mod crossref;
 mod events;
