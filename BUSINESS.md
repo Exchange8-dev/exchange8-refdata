@@ -1,4 +1,4 @@
-# BUSINESS.md: Exchange8:RefData — Business Requirements & Functionality
+# Exchange8:RefData — Business Requirements & Functionality
 
 > Audience: product owners, business analysts, and anyone evaluating what
 > Exchange8:RefData **does for the business**. For architecture read `README.md`;

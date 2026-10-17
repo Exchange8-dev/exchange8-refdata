@@ -1,4 +1,4 @@
-# DESIGN.md: Exchange8:RefData — Detailed Design Document
+# Exchange8:RefData — Detailed Design Document
 
 ## 1. Scope & Context
 
