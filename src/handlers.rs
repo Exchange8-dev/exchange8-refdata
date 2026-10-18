@@ -109,6 +109,17 @@ pub struct SecurityResponse {
     pub qty_scale: i16,
     pub min_size: i32,
 }
+#[utoipa::path(
+    get,
+    path = "/v1/securities",
+    responses(
+        (status = 200, description = "OK", body = serde_json::Value),
+        (status = 401, description = "Not authenticated"),
+        (status = 403, description = "Forbidden"),
+    ),
+    security(),
+    tag = "refdata",
+)]
 
 /// `GET /v1/securities` — list securities (RLS-scoped).
 pub async fn list_securities(
@@ -160,6 +171,17 @@ pub struct CreateSecurityRequest {
     pub qty_scale: Option<i16>,
     pub min_size: Option<i32>,
 }
+#[utoipa::path(
+    post,
+    path = "/v1/securities",
+    responses(
+        (status = 200, description = "OK", body = serde_json::Value),
+        (status = 401, description = "Not authenticated"),
+        (status = 403, description = "Forbidden"),
+    ),
+    security(),
+    tag = "refdata",
+)]
 
 /// `POST /v1/securities` — create a security (RLS-scoped insert).
 pub async fn create_security(
@@ -249,6 +271,17 @@ pub async fn create_security(
     ctx.commit().await.map_err(err_db)?;
     Ok(Json(row))
 }
+#[utoipa::path(
+    get,
+    path = "/v1/securities/{id}",
+    responses(
+        (status = 200, description = "OK", body = serde_json::Value),
+        (status = 401, description = "Not authenticated"),
+        (status = 403, description = "Forbidden"),
+    ),
+    security(),
+    tag = "refdata",
+)]
 
 /// `GET /v1/securities/{id}` — single lookup.
 pub async fn get_security(
@@ -316,6 +349,17 @@ pub struct MarketResponse {
 
 const MARKET_COLUMNS: &str = "id, env_id, code, name, mic, market_code, market_type, \
      lot_size, hidden_orders, ebbo_enabled, regulation, market_mode";
+#[utoipa::path(
+    get,
+    path = "/v1/markets",
+    responses(
+        (status = 200, description = "OK", body = serde_json::Value),
+        (status = 401, description = "Not authenticated"),
+        (status = 403, description = "Forbidden"),
+    ),
+    security(),
+    tag = "refdata",
+)]
 
 /// `GET /v1/markets` — list markets (RLS-scoped).
 pub async fn list_markets(
@@ -358,6 +402,17 @@ pub struct CreateMarketRequest {
     pub regulation: Option<String>,
     pub market_mode: Option<String>,
 }
+#[utoipa::path(
+    post,
+    path = "/v1/markets",
+    responses(
+        (status = 200, description = "OK", body = serde_json::Value),
+        (status = 401, description = "Not authenticated"),
+        (status = 403, description = "Forbidden"),
+    ),
+    security(),
+    tag = "refdata",
+)]
 
 /// `POST /v1/markets` + `POST /v1/admin/markets` — create a market.
 pub async fn create_market(
@@ -447,6 +502,17 @@ pub struct UpdateMarketRequest {
     pub regulation: Option<String>,
     pub market_mode: Option<String>,
 }
+#[utoipa::path(
+    put,
+    path = "/v1/markets/{id}",
+    responses(
+        (status = 200, description = "OK", body = serde_json::Value),
+        (status = 401, description = "Not authenticated"),
+        (status = 403, description = "Forbidden"),
+    ),
+    security(),
+    tag = "refdata",
+)]
 
 /// `PUT /v1/markets/{id}` — update a market (guarded, full snapshot event).
 pub async fn update_market(
@@ -608,6 +674,17 @@ async fn ca_gate(
 /// trading-state changes are Exchange8:ME's (market control) — the refdata
 /// update path carries identity/precision/book fields only.
 #[allow(clippy::too_many_arguments)]
+#[utoipa::path(
+    put,
+    path = "/v1/securities/{id}",
+    responses(
+        (status = 200, description = "OK", body = serde_json::Value),
+        (status = 401, description = "Not authenticated"),
+        (status = 403, description = "Forbidden"),
+    ),
+    security(),
+    tag = "refdata",
+)]
 pub async fn update_security(
     State(state): State<Arc<AppState>>,
     headers: axum::http::HeaderMap,
@@ -701,6 +778,17 @@ pub struct UpdateSecurityRequest {
     /// Terminal delisting flag.
     pub permanently_delisted: Option<bool>,
 }
+#[utoipa::path(
+    delete,
+    path = "/v1/securities/{id}",
+    responses(
+        (status = 200, description = "OK", body = serde_json::Value),
+        (status = 401, description = "Not authenticated"),
+        (status = 403, description = "Forbidden"),
+    ),
+    security(),
+    tag = "refdata",
+)]
 
 /// `DELETE /v1/securities/{id}` — remove a security row. Blocked when the
 /// security is referenced (the FK errors map to 409).
@@ -836,6 +924,17 @@ pub struct ListCaQuery {
     pub stage: Option<String>,
     pub limit: Option<i64>,
 }
+#[utoipa::path(
+    get,
+    path = "/v1/corporate-actions",
+    responses(
+        (status = 200, description = "OK", body = serde_json::Value),
+        (status = 401, description = "Not authenticated"),
+        (status = 403, description = "Forbidden"),
+    ),
+    security(),
+    tag = "refdata",
+)]
 
 /// `GET /v1/corporate-actions` — list corporate actions (RLS-scoped; the
 /// CA lifecycle calendar view).
@@ -883,6 +982,17 @@ pub struct AnnounceCaRequest {
     pub numerator: Option<rust_decimal::Decimal>,
     pub denominator: Option<rust_decimal::Decimal>,
 }
+#[utoipa::path(
+    post,
+    path = "/v1/corporate-actions",
+    responses(
+        (status = 200, description = "OK", body = serde_json::Value),
+        (status = 401, description = "Not authenticated"),
+        (status = 403, description = "Forbidden"),
+    ),
+    security(),
+    tag = "refdata",
+)]
 
 /// `POST /v1/corporate-actions` — announce a corporate action (stage
 /// `announced`; outbox `announced` event; audit journal row).
@@ -958,6 +1068,17 @@ pub struct CancelCaRequest {
     #[allow(dead_code)]
     pub reason: Option<String>,
 }
+#[utoipa::path(
+    post,
+    path = "/v1/corporate-actions/{id}/cancel",
+    responses(
+        (status = 200, description = "OK", body = serde_json::Value),
+        (status = 401, description = "Not authenticated"),
+        (status = 403, description = "Forbidden"),
+    ),
+    security(),
+    tag = "refdata",
+)]
 
 /// `POST /v1/corporate-actions/{id}/cancel` — withdraw an action while it
 /// is still `announced` (the stage predicate is the guard: a raced tick
@@ -1070,6 +1191,17 @@ async fn emit_ca_mutation(
     .await
     .map_err(err_db)
 }
+#[utoipa::path(
+    get,
+    path = "/v1/corporate-actions/calendar",
+    responses(
+        (status = 200, description = "OK", body = serde_json::Value),
+        (status = 401, description = "Not authenticated"),
+        (status = 403, description = "Forbidden"),
+    ),
+    security(),
+    tag = "refdata",
+)]
 
 /// `GET /v1/corporate-actions/calendar` — the upcoming-action view
 /// (calendar rows joined to their actions; CA read scope).
@@ -1118,6 +1250,17 @@ pub struct TickRuleResponse {
     pub env_id: Uuid,
     pub name: String,
 }
+#[utoipa::path(
+    get,
+    path = "/v1/tick-rules",
+    responses(
+        (status = 200, description = "OK", body = serde_json::Value),
+        (status = 401, description = "Not authenticated"),
+        (status = 403, description = "Forbidden"),
+    ),
+    security(),
+    tag = "refdata",
+)]
 
 /// `GET /v1/tick-rules` — list tick rules.
 pub async fn list_tick_rules(
@@ -1153,6 +1296,17 @@ pub struct TickBandRequest {
     pub max_price: Option<rust_decimal::Decimal>,
     pub tick_value: rust_decimal::Decimal,
 }
+#[utoipa::path(
+    post,
+    path = "/v1/tick-rules",
+    responses(
+        (status = 200, description = "OK", body = serde_json::Value),
+        (status = 401, description = "Not authenticated"),
+        (status = 403, description = "Forbidden"),
+    ),
+    security(),
+    tag = "refdata",
+)]
 
 /// `POST /v1/tick-rules` — create a tick rule + its bands in one tx
 /// (outbox `tick-rule:created` + audit journal row).
@@ -1238,6 +1392,17 @@ pub async fn create_tick_rule(
 pub struct UpdateTickRuleRequest {
     pub name: Option<String>,
 }
+#[utoipa::path(
+    put,
+    path = "/v1/tick-rules/{id}",
+    responses(
+        (status = 200, description = "OK", body = serde_json::Value),
+        (status = 401, description = "Not authenticated"),
+        (status = 403, description = "Forbidden"),
+    ),
+    security(),
+    tag = "refdata",
+)]
 
 /// `PUT /v1/tick-rules/{id}` — rename a tick rule (band edits are separate
 /// writes under the same write scope; renames are the admin-surface
@@ -1309,6 +1474,17 @@ pub struct HolidayResponse {
     pub holiday_date: chrono::NaiveDate,
     pub name: String,
 }
+#[utoipa::path(
+    post,
+    path = "/v1/holidays",
+    responses(
+        (status = 200, description = "OK", body = serde_json::Value),
+        (status = 401, description = "Not authenticated"),
+        (status = 403, description = "Forbidden"),
+    ),
+    security(),
+    tag = "refdata",
+)]
 
 /// `POST /v1/holidays` — declare a market holiday (+ per-market closure
 /// rows; outbox `holiday:created` + audit journal row).
@@ -1404,6 +1580,17 @@ pub struct BookConnectionResponse {
     pub seq: i32,
     pub status: String,
 }
+#[utoipa::path(
+    post,
+    path = "/v1/books/connections",
+    responses(
+        (status = 200, description = "OK", body = serde_json::Value),
+        (status = 401, description = "Not authenticated"),
+        (status = 403, description = "Forbidden"),
+    ),
+    security(),
+    tag = "refdata",
+)]
 
 /// `POST /v1/books/connections` — register a book↔connection membership
 /// (outbox `book-connection:created` + audit journal row).
@@ -1482,6 +1669,17 @@ pub async fn create_book_connection(
 }
 
 // ── Admin RFW page surface (DESIGN.md §4) ───────────────────────────────
+#[utoipa::path(
+    get,
+    path = "/v1/admin/ui/{page}",
+    responses(
+        (status = 200, description = "OK", body = serde_json::Value),
+        (status = 401, description = "Not authenticated"),
+        (status = 403, description = "Forbidden"),
+    ),
+    security(),
+    tag = "exchange8-admin",
+)]
 
 /// `GET /v1/admin/ui/{page}` — the RFW page definition (Dash renders it).
 /// Gated on the page's declared Shield action — UI definitions carry no
@@ -1524,6 +1722,17 @@ pub struct ScheduleRunRequest {
     #[allow(dead_code)]
     pub idempotency_key: Option<String>,
 }
+#[utoipa::path(
+    post,
+    path = "/v1/internal/schedules/run",
+    responses(
+        (status = 200, description = "OK", body = serde_json::Value),
+        (status = 401, description = "Not authenticated"),
+        (status = 403, description = "Forbidden"),
+    ),
+    security(),
+    tag = "refdata-internal",
+)]
 
 /// `POST /v1/internal/schedules/run` — Sentin8:Cron proxy-back target for
 /// the corporate-action transition worker (the platform secrets

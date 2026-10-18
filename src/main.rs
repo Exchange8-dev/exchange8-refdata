@@ -24,6 +24,7 @@ mod events;
 mod handlers;
 mod refdata;
 mod registration;
+mod openapi;
 mod worker;
 
 use std::sync::Arc;
