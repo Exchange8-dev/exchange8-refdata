@@ -50,7 +50,7 @@ pub mod scopes {
     pub const CA_TRANSITION: &str = "exchange8:refdata:corporate-action:transition";
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct ListSecuritiesQuery {
     pub symbol: Option<String>,
     pub security_type: Option<String>,
@@ -93,7 +93,7 @@ fn err_db_json(e: serde_json::Error) -> (StatusCode, String) {
     err_db(e)
 }
 
-#[derive(Debug, Serialize, sqlx::FromRow)]
+#[derive(Debug, Serialize, sqlx::FromRow, utoipa::ToSchema)]
 pub struct SecurityResponse {
     pub id: Uuid,
     pub env_id: Uuid,
@@ -109,11 +109,60 @@ pub struct SecurityResponse {
     pub qty_scale: i16,
     pub min_size: i32,
 }
+// ── Typed response DTOs (OAPEC-9) ──────────────────────────────────────
+
+/// Security deletion ack.
+#[derive(Debug, serde::Serialize, utoipa::ToSchema)]
+pub struct SecurityDeleteAck {
+    /// The deleted security id.
+    pub id: uuid::Uuid,
+    /// Always `true`.
+    pub deleted: bool,
+}
+
+/// CA cancellation ack.
+#[derive(Debug, serde::Serialize, utoipa::ToSchema)]
+pub struct CaCancelAck {
+    /// The cancelled action id.
+    pub id: uuid::Uuid,
+    /// Always `true`.
+    pub cancelled: bool,
+    /// The stage at cancellation.
+    pub stage: String,
+}
+
+/// One corporate-action calendar entry.
+#[derive(Debug, serde::Serialize, utoipa::ToSchema)]
+pub struct CaCalendarEntry {
+    /// The calendar-row id.
+    pub id: uuid::Uuid,
+    /// The parent action id.
+    pub action_id: uuid::Uuid,
+    /// The effective date.
+    pub effective_date: chrono::NaiveDate,
+    /// The action type.
+    pub action_type: String,
+    /// The current stage.
+    pub stage: String,
+    /// The affected security.
+    pub security_id: uuid::Uuid,
+}
+
+/// The RFW page-definition document this service serves (the local
+/// `RfwPage` builder emits the renderer contract directly; documented as
+/// a transparent wrapper so the schema is non-empty and wire-true).
+#[derive(Debug, serde::Serialize, utoipa::ToSchema)]
+#[serde(transparent)]
+pub struct AdminRfwPage(
+    /// The RFW page-definition document (renderer-contract JSON).
+    pub serde_json::Value,
+);
+
 #[utoipa::path(
     get,
     path = "/v1/securities",
     responses(
-        (status = 200, description = "OK", body = serde_json::Value),
+        (status = 200, description = "OK", body = Vec<SecurityResponse>),
         (status = 401, description = "Not authenticated"),
         (status = 403, description = "Forbidden"),
     ),
@@ -161,7 +210,7 @@ pub async fn list_securities(
     Ok(Json(rows))
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct CreateSecurityRequest {
     pub symbol: String,
     pub isin: Option<String>,
@@ -175,7 +224,7 @@ pub struct CreateSecurityRequest {
     post,
     path = "/v1/securities",
     responses(
-        (status = 200, description = "OK", body = serde_json::Value),
+        (status = 200, description = "OK", body = SecurityResponse),
         (status = 401, description = "Not authenticated"),
         (status = 403, description = "Forbidden"),
     ),
@@ -275,7 +324,7 @@ pub async fn create_security(
     get,
     path = "/v1/securities/{id}",
     responses(
-        (status = 200, description = "OK", body = serde_json::Value),
+        (status = 200, description = "OK", body = SecurityResponse),
         (status = 401, description = "Not authenticated"),
         (status = 403, description = "Forbidden"),
     ),
@@ -326,12 +375,12 @@ pub async fn get_security(
 // pairs as the security path.
 // ---------------------------------------------------------------------------
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct ListMarketsQuery {
     pub limit: Option<i64>,
 }
 
-#[derive(Debug, Serialize, sqlx::FromRow)]
+#[derive(Debug, Serialize, sqlx::FromRow, utoipa::ToSchema)]
 pub struct MarketResponse {
     pub id: Uuid,
     pub env_id: Uuid,
@@ -353,7 +402,7 @@ const MARKET_COLUMNS: &str = "id, env_id, code, name, mic, market_code, market_t
     get,
     path = "/v1/markets",
     responses(
-        (status = 200, description = "OK", body = serde_json::Value),
+        (status = 200, description = "OK", body = Vec<MarketResponse>),
         (status = 401, description = "Not authenticated"),
         (status = 403, description = "Forbidden"),
     ),
@@ -388,7 +437,7 @@ pub async fn list_markets(
     Ok(Json(rows))
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct CreateMarketRequest {
     /// The book-grouping code (`CHAR(1)`, unique per env).
     pub code: String,
@@ -406,7 +455,7 @@ pub struct CreateMarketRequest {
     post,
     path = "/v1/markets",
     responses(
-        (status = 200, description = "OK", body = serde_json::Value),
+        (status = 200, description = "OK", body = MarketResponse),
         (status = 401, description = "Not authenticated"),
         (status = 403, description = "Forbidden"),
     ),
@@ -490,7 +539,7 @@ pub async fn create_market(
     Ok(Json(row))
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct UpdateMarketRequest {
     pub name: Option<String>,
     pub mic: Option<String>,
@@ -506,7 +555,7 @@ pub struct UpdateMarketRequest {
     put,
     path = "/v1/markets/{id}",
     responses(
-        (status = 200, description = "OK", body = serde_json::Value),
+        (status = 200, description = "OK", body = MarketResponse),
         (status = 401, description = "Not authenticated"),
         (status = 403, description = "Forbidden"),
     ),
@@ -678,7 +727,7 @@ async fn ca_gate(
     put,
     path = "/v1/securities/{id}",
     responses(
-        (status = 200, description = "OK", body = serde_json::Value),
+        (status = 200, description = "OK", body = SecurityResponse),
         (status = 401, description = "Not authenticated"),
         (status = 403, description = "Forbidden"),
     ),
@@ -758,7 +807,7 @@ pub async fn update_security(
     Ok(Json(row))
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 /// Mutable fields of the security update - `None` leaves the column.
 pub struct UpdateSecurityRequest {
     /// ISO identifier.
@@ -782,7 +831,7 @@ pub struct UpdateSecurityRequest {
     delete,
     path = "/v1/securities/{id}",
     responses(
-        (status = 200, description = "OK", body = serde_json::Value),
+        (status = 200, description = "OK", body = SecurityDeleteAck),
         (status = 401, description = "Not authenticated"),
         (status = 403, description = "Forbidden"),
     ),
@@ -796,7 +845,7 @@ pub async fn delete_security(
     State(state): State<Arc<AppState>>,
     headers: axum::http::HeaderMap,
     axum::extract::Path(id): axum::extract::Path<Uuid>,
-) -> Result<Json<serde_json::Value>, (StatusCode, String)> {
+) -> Result<Json<SecurityDeleteAck>, (StatusCode, String)> {
     let a = sentin8::shell::verify_token(&state.config, &headers).await?;
     sentin8::shell::policy::require(
         &state.admin.policy,
@@ -861,7 +910,10 @@ pub async fn delete_security(
     .await
     .map_err(err_db)?;
     ctx.commit().await.map_err(err_db)?;
-    Ok(Json(serde_json::json!({ "id": id, "deleted": true })))
+    Ok(Json(SecurityDeleteAck {
+        id,
+        deleted: true,
+    }))
 }
 
 /// Shared tail of the security mutation path: the outbox envelope (full
@@ -903,7 +955,7 @@ async fn emit_security_mutation(
 
 // ── Corporate actions (DESIGN.md §4 CA surface) ─────────────────────────
 
-#[derive(Debug, Serialize, sqlx::FromRow)]
+#[derive(Debug, Serialize, sqlx::FromRow, utoipa::ToSchema)]
 pub struct CorporateActionResponse {
     pub id: Uuid,
     pub env_id: Uuid,
@@ -918,7 +970,7 @@ pub struct CorporateActionResponse {
     pub stage: String,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct ListCaQuery {
     pub security_id: Option<Uuid>,
     pub stage: Option<String>,
@@ -928,7 +980,7 @@ pub struct ListCaQuery {
     get,
     path = "/v1/corporate-actions",
     responses(
-        (status = 200, description = "OK", body = serde_json::Value),
+        (status = 200, description = "OK", body = Vec<CorporateActionResponse>),
         (status = 401, description = "Not authenticated"),
         (status = 403, description = "Forbidden"),
     ),
@@ -970,7 +1022,7 @@ pub async fn list_corporate_actions(
     Ok(Json(rows))
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct AnnounceCaRequest {
     pub security_id: Uuid,
     /// One of the schema CHECK vocabulary (`split`, `cash_dividend`, …).
@@ -986,7 +1038,7 @@ pub struct AnnounceCaRequest {
     post,
     path = "/v1/corporate-actions",
     responses(
-        (status = 200, description = "OK", body = serde_json::Value),
+        (status = 200, description = "OK", body = CorporateActionResponse),
         (status = 401, description = "Not authenticated"),
         (status = 403, description = "Forbidden"),
     ),
@@ -1061,7 +1113,7 @@ pub async fn announce_corporate_action(
     Ok(Json(row))
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct CancelCaRequest {
     /// Optional operator note - captured in the audit journal detail via
     /// the cancel message when provided (accepted for the operator UX).
@@ -1072,7 +1124,7 @@ pub struct CancelCaRequest {
     post,
     path = "/v1/corporate-actions/{id}/cancel",
     responses(
-        (status = 200, description = "OK", body = serde_json::Value),
+        (status = 200, description = "OK", body = CaCancelAck),
         (status = 401, description = "Not authenticated"),
         (status = 403, description = "Forbidden"),
     ),
@@ -1089,7 +1141,7 @@ pub async fn cancel_corporate_action(
     headers: axum::http::HeaderMap,
     axum::extract::Path(id): axum::extract::Path<Uuid>,
     body: Option<Json<CancelCaRequest>>,
-) -> Result<Json<serde_json::Value>, (StatusCode, String)> {
+) -> Result<Json<CaCancelAck>, (StatusCode, String)> {
     let _ = body;
     let a = sentin8::shell::verify_token(&state.config, &headers).await?;
     ca_gate(&state, &a, &headers, true).await?;
@@ -1134,9 +1186,11 @@ pub async fn cancel_corporate_action(
     .await
     .map_err(err_db)?;
     ctx.commit().await.map_err(err_db)?;
-    Ok(Json(serde_json::json!({
-        "id": id, "cancelled": true, "stage": row.stage,
-    })))
+    Ok(Json(CaCancelAck {
+        id,
+        cancelled: true,
+        stage: row.stage,
+    }))
 }
 
 /// Shared tail of the CA mutation path: envelope + journal on the CALLER's
@@ -1195,7 +1249,7 @@ async fn emit_ca_mutation(
     get,
     path = "/v1/corporate-actions/calendar",
     responses(
-        (status = 200, description = "OK", body = serde_json::Value),
+        (status = 200, description = "OK", body = Vec<CaCalendarEntry>),
         (status = 401, description = "Not authenticated"),
         (status = 403, description = "Forbidden"),
     ),
@@ -1208,7 +1262,7 @@ async fn emit_ca_mutation(
 pub async fn list_ca_calendar(
     State(state): State<Arc<AppState>>,
     headers: axum::http::HeaderMap,
-) -> Result<Json<Vec<serde_json::Value>>, (StatusCode, String)> {
+) -> Result<Json<Vec<CaCalendarEntry>>, (StatusCode, String)> {
     let a = sentin8::shell::verify_token(&state.config, &headers).await?;
     ca_gate(&state, &a, &headers, false).await?;
     let mut conn = state.pool.acquire().await.map_err(err_db)?;
@@ -1233,10 +1287,14 @@ pub async fn list_ca_calendar(
         let action_type: String = r.try_get("action_type").map_err(err_db)?;
         let stage: String = r.try_get("stage").map_err(err_db)?;
         let security_id: Uuid = r.try_get("security_id").map_err(err_db)?;
-        out.push(serde_json::json!({
-            "id": id, "action_id": action_id, "effective_date": effective_date,
-            "action_type": action_type, "stage": stage, "security_id": security_id,
-        }));
+        out.push(CaCalendarEntry {
+            id,
+            action_id,
+            effective_date,
+            action_type,
+            stage,
+            security_id,
+        });
     }
     ctx.commit().await.map_err(err_db)?;
     Ok(Json(out))
@@ -1244,7 +1302,7 @@ pub async fn list_ca_calendar(
 
 // ── Tick rules, holidays, books (DESIGN.md §4 mutation breadth) ─────────
 
-#[derive(Debug, Serialize, sqlx::FromRow)]
+#[derive(Debug, Serialize, sqlx::FromRow, utoipa::ToSchema)]
 pub struct TickRuleResponse {
     pub id: Uuid,
     pub env_id: Uuid,
@@ -1254,7 +1312,7 @@ pub struct TickRuleResponse {
     get,
     path = "/v1/tick-rules",
     responses(
-        (status = 200, description = "OK", body = serde_json::Value),
+        (status = 200, description = "OK", body = Vec<TickRuleResponse>),
         (status = 401, description = "Not authenticated"),
         (status = 403, description = "Forbidden"),
     ),
@@ -1283,14 +1341,14 @@ pub async fn list_tick_rules(
     Ok(Json(rows))
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct CreateTickRuleRequest {
     pub name: String,
     /// Bands: (min_price, max_price, tick) rows.
     pub bands: Vec<TickBandRequest>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct TickBandRequest {
     pub min_price: rust_decimal::Decimal,
     pub max_price: Option<rust_decimal::Decimal>,
@@ -1300,7 +1358,7 @@ pub struct TickBandRequest {
     post,
     path = "/v1/tick-rules",
     responses(
-        (status = 200, description = "OK", body = serde_json::Value),
+        (status = 200, description = "OK", body = Vec<CaCalendarEntry>),
         (status = 401, description = "Not authenticated"),
         (status = 403, description = "Forbidden"),
     ),
@@ -1388,7 +1446,7 @@ pub async fn create_tick_rule(
     Ok(Json(row))
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct UpdateTickRuleRequest {
     pub name: Option<String>,
 }
@@ -1396,7 +1454,7 @@ pub struct UpdateTickRuleRequest {
     put,
     path = "/v1/tick-rules/{id}",
     responses(
-        (status = 200, description = "OK", body = serde_json::Value),
+        (status = 200, description = "OK", body = TickRuleResponse),
         (status = 401, description = "Not authenticated"),
         (status = 403, description = "Forbidden"),
     ),
@@ -1459,7 +1517,7 @@ pub async fn update_tick_rule(
     Ok(Json(row))
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct CreateHolidayRequest {
     pub holiday_date: chrono::NaiveDate,
     pub name: String,
@@ -1467,7 +1525,7 @@ pub struct CreateHolidayRequest {
     pub market_ids: Vec<Uuid>,
 }
 
-#[derive(Debug, Serialize, sqlx::FromRow)]
+#[derive(Debug, Serialize, sqlx::FromRow, utoipa::ToSchema)]
 pub struct HolidayResponse {
     pub id: Uuid,
     pub env_id: Uuid,
@@ -1478,7 +1536,7 @@ pub struct HolidayResponse {
     post,
     path = "/v1/holidays",
     responses(
-        (status = 200, description = "OK", body = serde_json::Value),
+        (status = 200, description = "OK", body = HolidayResponse),
         (status = 401, description = "Not authenticated"),
         (status = 403, description = "Forbidden"),
     ),
@@ -1561,7 +1619,7 @@ pub async fn create_holiday(
     Ok(Json(row))
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct CreateBookConnectionRequest {
     pub book_id: Uuid,
     /// GW-owned connection comp id.
@@ -1571,7 +1629,7 @@ pub struct CreateBookConnectionRequest {
     pub status: Option<String>,
 }
 
-#[derive(Debug, Serialize, sqlx::FromRow)]
+#[derive(Debug, Serialize, sqlx::FromRow, utoipa::ToSchema)]
 pub struct BookConnectionResponse {
     pub id: Uuid,
     pub env_id: Uuid,
@@ -1584,7 +1642,7 @@ pub struct BookConnectionResponse {
     post,
     path = "/v1/books/connections",
     responses(
-        (status = 200, description = "OK", body = serde_json::Value),
+        (status = 200, description = "OK", body = BookConnectionResponse),
         (status = 401, description = "Not authenticated"),
         (status = 403, description = "Forbidden"),
     ),
@@ -1673,7 +1731,7 @@ pub async fn create_book_connection(
     get,
     path = "/v1/admin/ui/{page}",
     responses(
-        (status = 200, description = "OK", body = serde_json::Value),
+        (status = 200, description = "OK", body = sentin8::rfw::AdminUiResponse),
         (status = 401, description = "Not authenticated"),
         (status = 403, description = "Forbidden"),
     ),
@@ -1690,7 +1748,7 @@ pub async fn admin_ui_page(
     State(state): State<Arc<AppState>>,
     headers: axum::http::HeaderMap,
     axum::extract::Path(page): axum::extract::Path<String>,
-) -> Result<Json<serde_json::Value>, (StatusCode, String)> {
+) -> Result<Json<AdminRfwPage>, (StatusCode, String)> {
     let a = sentin8::shell::verify_token(&state.config, &headers).await?;
     let definition = crate::admin_ui::refdata_pages()
         .into_iter()
@@ -1704,12 +1762,12 @@ pub async fn admin_ui_page(
     )
     .await
     .map(|_| ())?;
-    Ok(Json(definition.to_rfw()))
+    Ok(Json(AdminRfwPage(definition.to_rfw())))
 }
 
 // ── Cron proxy-back (DESIGN.md §2 request family 3, §10 worker) ─────────
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct ScheduleRunRequest {
     pub schedule_id: Option<Uuid>,
     pub schedule_type: String,
@@ -1722,11 +1780,22 @@ pub struct ScheduleRunRequest {
     #[allow(dead_code)]
     pub idempotency_key: Option<String>,
 }
+/// Cron proxy-back acknowledgement (OAPEC-9 typed body).
+#[derive(Debug, serde::Serialize, utoipa::ToSchema)]
+pub struct ScheduleRunResponse {
+    /// The schedule_type that ran.
+    pub schedule_type: String,
+    /// The env the schedule advanced.
+    pub env_id: uuid::Uuid,
+    /// Whether the transition advanced (`true`) or deduped (`false`).
+    pub advanced: bool,
+}
+
 #[utoipa::path(
     post,
     path = "/v1/internal/schedules/run",
     responses(
-        (status = 200, description = "OK", body = serde_json::Value),
+        (status = 200, description = "OK", body = ScheduleRunResponse),
         (status = 401, description = "Not authenticated"),
         (status = 403, description = "Forbidden"),
     ),
@@ -1748,7 +1817,7 @@ pub async fn internal_schedules_run(
     State(state): State<Arc<AppState>>,
     headers: axum::http::HeaderMap,
     Json(body): Json<ScheduleRunRequest>,
-) -> Result<Json<serde_json::Value>, (StatusCode, String)> {
+) -> Result<Json<ScheduleRunResponse>, (StatusCode, String)> {
     let a = sentin8::shell::verify_token(&state.config, &headers).await?;
     sentin8::shell::policy::require(
         &state.admin.policy,
@@ -1765,11 +1834,11 @@ pub async fn internal_schedules_run(
     let advanced =
         crate::worker::advance_due_transitions(&state, body.env_id, &a.claims.sub, &correlation_id)
             .await?;
-    Ok(Json(serde_json::json!({
-        "schedule_type": body.schedule_type,
-        "env_id": body.env_id,
-        "advanced": advanced,
-    })))
+    Ok(Json(ScheduleRunResponse {
+        schedule_type: body.schedule_type.clone(),
+        env_id: body.env_id,
+        advanced: advanced != 0,
+    }))
 }
 
 // ---------------------------------------------------------------------------

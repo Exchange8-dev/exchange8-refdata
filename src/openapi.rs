@@ -9,6 +9,7 @@
 //! shell-owned `/v1/health` mount is described through a spec wrapper
 //! (`sentin8/design/sentin8-openapi-coverage-design.md` §2).
 
+use crate::handlers;
 use utoipa::OpenApi;
 
 pub mod w {
@@ -18,7 +19,7 @@ pub mod w {
         get,
         path = "/v1/health",
         responses(
-            (status = 200, description = "Service is healthy", body = serde_json::Value),
+            (status = 200, description = "Service is healthy", body = sentin8::middleware::health::LiveHealth),
         ),
         security(),
         tag = "refdata",
@@ -29,7 +30,7 @@ pub mod w {
         get,
         path = "/v1/admin/securities",
         responses(
-            (status = 200, description = "OK", body = serde_json::Value),
+            (status = 200, description = "OK", body = Vec<crate::handlers::SecurityResponse>),
             (status = 403, description = "Forbidden"),
         ),
         security(),
@@ -40,8 +41,9 @@ pub mod w {
     #[utoipa::path(
         post,
         path = "/v1/admin/securities",
+        request_body = crate::handlers::CreateSecurityRequest,
         responses(
-            (status = 200, description = "OK", body = serde_json::Value),
+            (status = 200, description = "OK", body = crate::handlers::SecurityResponse),
             (status = 403, description = "Forbidden"),
         ),
         security(),
@@ -53,7 +55,7 @@ pub mod w {
         get,
         path = "/v1/admin/securities/{id}",
         responses(
-            (status = 200, description = "OK", body = serde_json::Value),
+            (status = 200, description = "OK", body = crate::handlers::SecurityResponse),
             (status = 403, description = "Forbidden"),
         ),
         security(),
@@ -64,8 +66,9 @@ pub mod w {
     #[utoipa::path(
         put,
         path = "/v1/admin/securities/{id}",
+        request_body = crate::handlers::UpdateSecurityRequest,
         responses(
-            (status = 200, description = "OK", body = serde_json::Value),
+            (status = 200, description = "OK", body = crate::handlers::SecurityResponse),
             (status = 403, description = "Forbidden"),
         ),
         security(),
@@ -77,7 +80,7 @@ pub mod w {
         delete,
         path = "/v1/admin/securities/{id}",
         responses(
-            (status = 200, description = "OK", body = serde_json::Value),
+            (status = 200, description = "OK", body = crate::handlers::SecurityDeleteAck),
             (status = 403, description = "Forbidden"),
         ),
         security(),
@@ -88,8 +91,9 @@ pub mod w {
     #[utoipa::path(
         post,
         path = "/v1/admin/securities/{id}/update",
+        request_body = crate::handlers::UpdateSecurityRequest,
         responses(
-            (status = 200, description = "OK", body = serde_json::Value),
+            (status = 200, description = "OK", body = crate::handlers::SecurityResponse),
             (status = 403, description = "Forbidden"),
         ),
         security(),
@@ -101,7 +105,7 @@ pub mod w {
         post,
         path = "/v1/admin/securities/{id}/delete",
         responses(
-            (status = 200, description = "OK", body = serde_json::Value),
+            (status = 200, description = "OK", body = crate::handlers::SecurityDeleteAck),
             (status = 403, description = "Forbidden"),
         ),
         security(),
@@ -113,7 +117,7 @@ pub mod w {
         get,
         path = "/v1/admin/markets",
         responses(
-            (status = 200, description = "OK", body = serde_json::Value),
+            (status = 200, description = "OK", body = Vec<crate::handlers::MarketResponse>),
             (status = 403, description = "Forbidden"),
         ),
         security(),
@@ -124,8 +128,9 @@ pub mod w {
     #[utoipa::path(
         post,
         path = "/v1/admin/markets",
+        request_body = crate::handlers::CreateMarketRequest,
         responses(
-            (status = 200, description = "OK", body = serde_json::Value),
+            (status = 200, description = "OK", body = crate::handlers::MarketResponse),
             (status = 403, description = "Forbidden"),
         ),
         security(),
@@ -136,8 +141,9 @@ pub mod w {
     #[utoipa::path(
         post,
         path = "/v1/admin/markets/{id}/update",
+        request_body = crate::handlers::UpdateMarketRequest,
         responses(
-            (status = 200, description = "OK", body = serde_json::Value),
+            (status = 200, description = "OK", body = crate::handlers::MarketResponse),
             (status = 403, description = "Forbidden"),
         ),
         security(),
@@ -149,7 +155,7 @@ pub mod w {
         get,
         path = "/v1/admin/corporate-actions",
         responses(
-            (status = 200, description = "OK", body = serde_json::Value),
+            (status = 200, description = "OK", body = Vec<crate::handlers::CorporateActionResponse>),
             (status = 403, description = "Forbidden"),
         ),
         security(),
@@ -160,8 +166,9 @@ pub mod w {
     #[utoipa::path(
         post,
         path = "/v1/admin/corporate-actions",
+        request_body = crate::handlers::AnnounceCaRequest,
         responses(
-            (status = 200, description = "OK", body = serde_json::Value),
+            (status = 200, description = "OK", body = crate::handlers::CorporateActionResponse),
             (status = 403, description = "Forbidden"),
         ),
         security(),
@@ -173,7 +180,7 @@ pub mod w {
         get,
         path = "/v1/admin/corporate-actions/calendar",
         responses(
-            (status = 200, description = "OK", body = serde_json::Value),
+            (status = 200, description = "OK", body = Vec<crate::handlers::CaCalendarEntry>),
             (status = 403, description = "Forbidden"),
         ),
         security(),
@@ -184,8 +191,9 @@ pub mod w {
     #[utoipa::path(
         post,
         path = "/v1/admin/corporate-actions/{id}/cancel",
+        request_body = crate::handlers::CancelCaRequest,
         responses(
-            (status = 200, description = "OK", body = serde_json::Value),
+            (status = 200, description = "OK", body = crate::handlers::CaCancelAck),
             (status = 403, description = "Forbidden"),
         ),
         security(),
@@ -254,7 +262,22 @@ crate::openapi::w::refdata_health,
         sentin8::shell::policy_put_attribute,
         sentin8::shell::policy_delete_attribute,
     ),
-    components(schemas()),
+    components(schemas(
+        handlers::SecurityResponse,
+        handlers::SecurityDeleteAck,
+        handlers::MarketResponse,
+        handlers::CorporateActionResponse,
+        handlers::CaCancelAck,
+        handlers::CaCalendarEntry,
+        handlers::TickRuleResponse,
+        handlers::HolidayResponse,
+        handlers::BookConnectionResponse,
+        handlers::ScheduleRunRequest,
+        handlers::ScheduleRunResponse,
+        handlers::AdminRfwPage,
+        sentin8::middleware::health::LiveHealth,
+        sentin8::rfw::AdminUiResponse,
+    )),
     security(),
     tags(
         (name = "refdata", description = "Exchange8:Refdata"),
