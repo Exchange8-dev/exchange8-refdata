@@ -1069,7 +1069,7 @@
         "tags": [
           "exchange8-admin"
         ],
-        "summary": "`GET /v1/admin/ui/{page}` — the RFW page definition (Dash renders it).\nGated on the page's declared Shield action — UI definitions carry no\ntenant data; the decision is the step-5 mirror evaluation (the\nplatform-admin trio rides the live evaluation). Returns 404 for an\nundeclared page.",
+        "summary": "`GET /v1/admin/ui/{page}` - the RFW page definition (Dash renders it).\nGated on the page's declared Shield action - UI definitions carry no\ntenant data; the decision is the step-5 mirror evaluation (the\nplatform-admin trio rides the live evaluation). Returns 404 for an\nundeclared page.",
         "operationId": "admin_ui_page",
         "responses": {
           "200": {
@@ -1095,7 +1095,7 @@
         "tags": [
           "refdata"
         ],
-        "summary": "`POST /v1/books/connections` — register a book↔connection membership\n(outbox `book-connection:created` + audit journal row).",
+        "summary": "`POST /v1/books/connections` - register a book↔connection membership\n(outbox `book-connection:created` + audit journal row).",
         "operationId": "create_book_connection",
         "responses": {
           "200": {
@@ -1121,7 +1121,7 @@
         "tags": [
           "refdata"
         ],
-        "summary": "`GET /v1/corporate-actions` — list corporate actions (RLS-scoped; the\nCA lifecycle calendar view).",
+        "summary": "`GET /v1/corporate-actions` - list corporate actions (RLS-scoped; the\nCA lifecycle calendar view).",
         "operationId": "list_corporate_actions",
         "responses": {
           "200": {
@@ -1145,7 +1145,7 @@
         "tags": [
           "refdata"
         ],
-        "summary": "`POST /v1/corporate-actions` — announce a corporate action (stage\n`announced`; outbox `announced` event; audit journal row).",
+        "summary": "`POST /v1/corporate-actions` - announce a corporate action (stage\n`announced`; outbox `announced` event; audit journal row).",
         "operationId": "announce_corporate_action",
         "responses": {
           "200": {
@@ -1171,7 +1171,7 @@
         "tags": [
           "refdata"
         ],
-        "summary": "`GET /v1/corporate-actions/calendar` — the upcoming-action view\n(calendar rows joined to their actions; CA read scope).",
+        "summary": "`GET /v1/corporate-actions/calendar` - the upcoming-action view\n(calendar rows joined to their actions; CA read scope).",
         "operationId": "list_ca_calendar",
         "responses": {
           "200": {
@@ -1197,7 +1197,7 @@
         "tags": [
           "refdata"
         ],
-        "summary": "`POST /v1/corporate-actions/{id}/cancel` — withdraw an action while it\nis still `announced` (the stage predicate is the guard: a raced tick\nthat already advanced makes the cancel a 409). Events + journal in the\nsame tx.",
+        "summary": "`POST /v1/corporate-actions/{id}/cancel` - withdraw an action while it\nis still `announced` (the stage predicate is the guard: a raced tick\nthat already advanced makes the cancel a 409). Events + journal in the\nsame tx.",
         "operationId": "cancel_corporate_action",
         "responses": {
           "200": {
@@ -1243,7 +1243,7 @@
         "tags": [
           "refdata"
         ],
-        "summary": "`POST /v1/holidays` — declare a market holiday (+ per-market closure\nrows; outbox `holiday:created` + audit journal row).",
+        "summary": "`POST /v1/holidays` - declare a market holiday (+ per-market closure\nrows; outbox `holiday:created` + audit journal row).",
         "operationId": "create_holiday",
         "responses": {
           "200": {
@@ -1269,8 +1269,8 @@
         "tags": [
           "refdata-internal"
         ],
-        "summary": "`POST /v1/internal/schedules/run` — Sentin8:Cron proxy-back target for\nthe corporate-action transition worker (the platform secrets\nprecedent: the ticker calls back with its own workload certificate,\nverified like any other principal; step 5 evaluates the dedicated\ntransition action and the mirror admits the cron workload's\n`sentin8:cron:write`).",
-        "description": "Returns `{ advanced }` for the schedule's env. A 500 is a DB failure —\ncron retries with backoff and the stage-predicated UPDATE re-runs\n(idempotent on `(action id, target stage)`).",
+        "summary": "`POST /v1/internal/schedules/run` - Sentin8:Cron proxy-back target for\nthe corporate-action transition worker (the platform secrets\nprecedent: the ticker calls back with its own workload certificate,\nverified like any other principal; step 5 evaluates the dedicated\ntransition action and the mirror admits the cron workload's\n`sentin8:cron:write`).",
+        "description": "Returns `{ advanced }` for the schedule's env. A 500 is a DB failure -\ncron retries with backoff and the stage-predicated UPDATE re-runs\n(idempotent on `(action id, target stage)`).",
         "operationId": "internal_schedules_run",
         "responses": {
           "200": {
@@ -1296,7 +1296,7 @@
         "tags": [
           "refdata"
         ],
-        "summary": "`GET /v1/markets` — list markets (RLS-scoped).",
+        "summary": "`GET /v1/markets` - list markets (RLS-scoped).",
         "operationId": "list_markets",
         "responses": {
           "200": {
@@ -1320,7 +1320,7 @@
         "tags": [
           "refdata"
         ],
-        "summary": "`POST /v1/markets` + `POST /v1/admin/markets` — create a market.",
+        "summary": "`POST /v1/markets` + `POST /v1/admin/markets` - create a market.",
         "operationId": "create_market",
         "responses": {
           "200": {
@@ -1346,7 +1346,7 @@
         "tags": [
           "refdata"
         ],
-        "summary": "`PUT /v1/markets/{id}` — update a market (guarded, full snapshot event).",
+        "summary": "`PUT /v1/markets/{id}` - update a market (guarded, full snapshot event).",
         "operationId": "update_market",
         "responses": {
           "200": {
@@ -1372,7 +1372,7 @@
         "tags": [
           "refdata"
         ],
-        "summary": "`GET /v1/securities` — list securities (RLS-scoped).",
+        "summary": "`GET /v1/securities` - list securities (RLS-scoped).",
         "operationId": "list_securities",
         "responses": {
           "200": {
@@ -1396,7 +1396,7 @@
         "tags": [
           "refdata"
         ],
-        "summary": "`POST /v1/securities` — create a security (RLS-scoped insert).",
+        "summary": "`POST /v1/securities` - create a security (RLS-scoped insert).",
         "operationId": "create_security",
         "responses": {
           "200": {
@@ -1422,7 +1422,7 @@
         "tags": [
           "refdata"
         ],
-        "summary": "`GET /v1/securities/{id}` — single lookup.",
+        "summary": "`GET /v1/securities/{id}` - single lookup.",
         "operationId": "get_security",
         "responses": {
           "200": {
@@ -1446,7 +1446,7 @@
         "tags": [
           "refdata"
         ],
-        "summary": "`PUT /v1/securities/{id}` — update mutable security fields. Halting/\ntrading-state changes are Exchange8:ME's (market control) — the refdata\nupdate path carries identity/precision/book fields only.",
+        "summary": "`PUT /v1/securities/{id}` - update mutable security fields. Halting/\ntrading-state changes are Exchange8:ME's (market control) - the refdata\nupdate path carries identity/precision/book fields only.",
         "operationId": "update_security",
         "responses": {
           "200": {
@@ -1470,7 +1470,7 @@
         "tags": [
           "refdata"
         ],
-        "summary": "`DELETE /v1/securities/{id}` — remove a security row. Blocked when the\nsecurity is referenced (the FK errors map to 409).",
+        "summary": "`DELETE /v1/securities/{id}` - remove a security row. Blocked when the\nsecurity is referenced (the FK errors map to 409).",
         "operationId": "delete_security",
         "responses": {
           "200": {
@@ -1496,7 +1496,7 @@
         "tags": [
           "refdata"
         ],
-        "summary": "`GET /v1/tick-rules` — list tick rules.",
+        "summary": "`GET /v1/tick-rules` - list tick rules.",
         "operationId": "list_tick_rules",
         "responses": {
           "200": {
@@ -1520,7 +1520,7 @@
         "tags": [
           "refdata"
         ],
-        "summary": "`POST /v1/tick-rules` — create a tick rule + its bands in one tx\n(outbox `tick-rule:created` + audit journal row).",
+        "summary": "`POST /v1/tick-rules` - create a tick rule + its bands in one tx\n(outbox `tick-rule:created` + audit journal row).",
         "operationId": "create_tick_rule",
         "responses": {
           "200": {
@@ -1546,7 +1546,7 @@
         "tags": [
           "refdata"
         ],
-        "summary": "`PUT /v1/tick-rules/{id}` — rename a tick rule (band edits are separate\nwrites under the same write scope; renames are the admin-surface\nmutation).",
+        "summary": "`PUT /v1/tick-rules/{id}` - rename a tick rule (band edits are separate\nwrites under the same write scope; renames are the admin-surface\nmutation).",
         "operationId": "update_tick_rule",
         "responses": {
           "200": {

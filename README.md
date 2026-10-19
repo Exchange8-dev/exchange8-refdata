@@ -18,13 +18,13 @@ RLS-scoped HTTP API plus a policy-admin surface from Shield.
   FX quotes): the security master, scales (`price_scale`/`qty_scale`), lot
   sizes and tick bands must live in exactly one place, under one owner.
 - Corporate actions have their own calendar, state machine and position /
-  market-data adjustment math — they do not belong in the trade ledger or in
+  market-data adjustment math - they do not belong in the trade ledger or in
   config tables.
 - Every tenant (env) needs its own security universe, customer directory and
   book configuration; PostgreSQL RLS over a globally unique `env_id` gives
   per-env isolation with plain SQL and no shared table grants.
 - Sibling services (matching engine, vfeeds, RFQ) must read the security
-  master without cross-vertical knowledge — they consume it through declared
+  master without cross-vertical knowledge - they consume it through declared
   cross-schema SELECT grants and the RLS-scoped query API, never through
   platform tables.
 - Admin surfaces must render without shipping UI code: the service exposes
@@ -42,7 +42,7 @@ are covered by in-crate tests independent of HTTP and SQL.
 
 Every request runs the platform 8-step authorization pipeline: bearer verify →
 tenant resolve (`env_id` from token claims) → feature gate (shell) → Shield
-authorize (`sentin8_policy` — decision, not the JWT `scope` pre-filter) → RLS
+authorize (`sentin8_policy` - decision, not the JWT `scope` pre-filter) → RLS
 context set (`SELECT sentin8_set_tenant_context($1)`, awaited, same
 connection/transaction as the query) → execute with an explicit
 `WHERE env_id = $1` defense-in-depth → audit (local `refdata.audit_journal`
@@ -95,31 +95,31 @@ graph TD
 
 ## 4. Key Traits and Data Structures
 
-- **`SecurityResponse`** — the single projection of a security row served by
+- **`SecurityResponse`** - the single projection of a security row served by
   the whole API surface: identity (`id`, `env_id`), naming (`symbol`, `isin`),
   classification (`security_type`, `currency`), market state (`halted`,
   `trading_state`, `shortable`), placement (`market_id`) and precision
   (`price_scale`, `qty_scale`, `min_size`).
-- **`ActionType`** — the nine corporate-action kinds
+- **`ActionType`** - the nine corporate-action kinds
   (`cash_dividend`, `stock_dividend`, `split`, `reverse_split`, `merger`,
   `spin_off`, `rights`, `symbol_change`, `delisting`) with wire keys that map
   onto `refdata.corporate_action.action_type`.
-- **`Stage`** — the corporate-action lifecycle enum
+- **`Stage`** - the corporate-action lifecycle enum
   (`Announced → ExDate → RecordDate → PayDate`, terminal at `PayDate`),
   mirrored by the `stage` CHECK constraint on `refdata.corporate_action`.
-- **`CorporateAction`** — the ratio-carrying adjustment object
+- **`CorporateAction`** - the ratio-carrying adjustment object
   (`adjust_qty`, `adjust_price`, `cash_per_share`, `cash_entitlement`,
   `stock_entitlement`, `advance`): pure integer math over i128 raw ticks so
   adjustments are value-preserving and exactly reproducible.
-- **`CrossRef`** — the (scheme, value) → security resolver over five schemes
+- **`CrossRef`** - the (scheme, value) → security resolver over five schemes
   (SYMBOL, ISIN, CUSIP, SEDOL, FIGI); `resolve_any` requires scheme agreement,
   a conflicting mapping resolves to `None` (an ops flag, never a guess).
-- **`CaCalendar`** — date-windowed corporate-action calendar
+- **`CaCalendar`** - date-windowed corporate-action calendar
   (`ex_on`, `record_on`, `pay_on`) feeding ex-date adjustment feeds and
   pay-date entitlement settlement feeds.
-- **`snapshot_entitlements`** — record-date entitlement projection:
+- **`snapshot_entitlements`** - record-date entitlement projection:
   positions × per-share ratio, filtered to the action's security.
-- **`RfwPage` / `RfwSection`** — pure-data RFW page definitions
+- **`RfwPage` / `RfwSection`** - pure-data RFW page definitions
   (tables + POST-alias actions) rendered by Sentin8:Dash; icons are Material
   Icons code points (hex strings), never names.
 
@@ -127,14 +127,14 @@ graph TD
 
 - **Pattern choices.** Handlers delegate the authorization *decision* to
   Shield (`sentin8::shell::policy::require`) with the JWT `scope` claim only
-  as the RLS context feed — a per-handler scope check would fork the
+  as the RLS context feed - a per-handler scope check would fork the
   decision and drift from the admin-visible policy sets. The registration
   ships a `scope-mirror` Shield set (enforced, `origin='platform'`) that
   exactly mirrors the handler gates, so policy evaluation and handler intent
   are the same fact.
 - **Multi-scope reads.** Read gates deliberately accept
   `exchange8:order:read` too: order-placing clients read the securities they
-  trade against without holding a refdata scope. Writes stay write-gated —
+  trade against without holding a refdata scope. Writes stay write-gated -
   a reader cannot create securities.
 - **Dispatching.** Domain logic is plain enum + struct methods, not trait
   polymorphism: the adjustment rules and resolver are a fixed, closed
@@ -146,15 +146,15 @@ graph TD
   (`set_config(..., true)`), so nothing global is mutated on the request
   path; the pool is capped (default 3) to protect the shared cluster.
 - **Rejected alternatives.**
-  - Storing corporate-action money math in floating point — rejected; raw
+  - Storing corporate-action money math in floating point - rejected; raw
     i128 ticks keep split/dividend adjustments exact.
-  - Broad `{service}:read|write` scopes — rejected; granular
+  - Broad `{service}:read|write` scopes - rejected; granular
     `exchange8:refdata:{resource}:{action}` scopes keep the surface
     least-privilege.
-  - A shared cross-service inbox table for events — rejected; the producer
+  - A shared cross-service inbox table for events - rejected; the producer
     path is the service-local `refdata.outbox` + produce API, so no
     horizontal write grants exist.
-  - Shipping admin HTML in the service — rejected; RFW JSON definitions
+  - Shipping admin HTML in the service - rejected; RFW JSON definitions
     keep all UI rendering in Sentin8:Dash.
 
 ## 6. Internal Implementation & Invariants (Private Design)
@@ -167,12 +167,12 @@ graph TD
 - The RLS tenant context is set with the awaited `set_tenant_context` helper
   on the SAME connection and transaction as the data query; handlers also
   carry an explicit `WHERE env_id = $1` from the verified claims.
-- No secret material is stored in any table — credentials only ever appear
+- No secret material is stored in any table - credentials only ever appear
   as secret references; `EXCHANGE8_{SVC}_DATABASE_URL` values travel through
   the vertical registry, not the platform.
 - The route table is symmetric for data endpoints:
   `/v1/securities…` (public query API) and `/v1/admin/securities…` (RFW data
-  endpoint) are the same handlers with the same gates — and the RFW page
+  endpoint) are the same handlers with the same gates - and the RFW page
   definitions are served at `/v1/admin/ui/{page}` (the three registration
   routes).
 - Outbox rows are written in the same DB transaction as the domain change;
@@ -192,13 +192,13 @@ process-wide side effects and both are owned by the Sentin8 Shell.
 
 - Event consumers downstream (Exchange8:Clearing's ex-date position-adjustment
   projector, the record-date entitlement snapshot) are the consuming
-  services' wiring — this service owns the calendar, the events and the
+  services' wiring - this service owns the calendar, the events and the
   stage transitions (Sentin8:Cron proxy-back, implemented).
 - Mutation surface for the customer/firm master (locations, contacts,
-  traders, capitalization) is table-complete but not exposed yet — every
+  traders, capitalization) is table-complete but not exposed yet - every
   other refdata table has its API surface.
 - A MemBus newest-wins cache for the security master (no per-request
-  RLS reads for the matching hot path) — no invalidation channel exists
+  RLS reads for the matching hot path) - no invalidation channel exists
   yet.
 - Crypto corporate actions (forks, airdrops, staking rewards) are deferred
   into the schema's `security_type='Crypto'` + `asset_id` extension only.

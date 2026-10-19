@@ -3,7 +3,7 @@
 // SPDX-FileCopyrightText: Copyright Contributors to the Exchange8:Refdata
 // SPDX-License-Identifier: Apache-2.0
 
-//! Exchange8:REFDATA service binary — instrument reference data + corporate actions.
+//! Exchange8:REFDATA service binary - instrument reference data + corporate actions.
 //!
 //! Detailed design: services/refdata/DESIGN.md. Master design:
 //! `design/sentin8-exchange8-refdata-technical-design.md`. Core logic in
@@ -11,7 +11,7 @@
 //! the platform `sentin8-shell` crate (registration, DB pool, health).
 //! The corporate-action transition worker is Sentin8:Cron-driven
 //! (DESIGN.md §10 worker): the boot registers the recurring schedule and
-//! the router mounts the `POST /v1/internal/schedules/run` proxy-back —
+//! the router mounts the `POST /v1/internal/schedules/run` proxy-back -
 //! no in-process scheduler (design §1 delegation table).
 
 #![allow(dead_code)]
@@ -38,7 +38,7 @@ fn extend_router(
     sentin8::shell::mount_policy_admin(
         // Reference-data API (RLS-scoped via the platform authorization
         // pipeline) + the admin RFW surface (page definitions + data
-        // endpoints; POST-alias routes — renderer is POST-only) + the
+        // endpoints; POST-alias routes - renderer is POST-only) + the
         // Sentin8:Cron proxy-back target (DESIGN.md §10 worker).
         app.route(
             "/v1/securities",
@@ -88,13 +88,13 @@ fn extend_router(
             axum::routing::post(handlers::create_book_connection),
         )
         // ── Admin RFW page definitions (Dash renders them; the service
-        // mounts them — the shell does not auto-serve declared pages).
+        // mounts them - the shell does not auto-serve declared pages).
         .route(
             "/v1/admin/ui/{page}",
             axum::routing::get(handlers::admin_ui_page),
         )
         // ── Admin data endpoints (RFW data_endpoint fetches + POST-alias
-        // mutations — the renderer only supports POST).
+        // mutations - the renderer only supports POST).
         .route(
             "/v1/admin/securities",
             axum::routing::get(handlers::list_securities).post(handlers::create_security),
@@ -150,7 +150,7 @@ async fn main() -> anyhow::Result<()> {
             .with_state(|core| async move {
                 // Corporate-action transition schedule (SDD §2.4) is
                 // DECLARED in the registration's `schedules` section and
-                // provisioned by `vertical enroll` — no boot-time cron
+                // provisioned by `vertical enroll` - no boot-time cron
                 // calls. The proxy-back execution is the worker
                 // (`handlers::internal_schedules_run`), so the schedule
                 // and the handler live together. No in-process scheduler.

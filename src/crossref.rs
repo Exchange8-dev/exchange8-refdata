@@ -6,7 +6,7 @@
 //! Exchange8:RefData cross-reference + CA calendar/entitlements (see DESIGN.md §2).
 //!
 //! - **Reference-data cross-reference**: symbol/ISIN/CUSIP/SEDOL
-//!   resolution — many-to-one identifiers to one security, with
+//!   resolution - many-to-one identifiers to one security, with
 //!   deterministic best-match (exact, then per-scheme priority).
 //! - **Corporate-action calendar + entitlement snapshot**: the CA
 //!   lifecycle calendar (announced → ex → record → pay) per market, and
@@ -92,7 +92,7 @@ impl CrossRef {
                 if many.iter().all(|h| *h == first) {
                     Some(first)
                 } else {
-                    None // conflicting mappings — ops flag
+                    None // conflicting mappings - ops flag
                 }
             }
         }
@@ -335,7 +335,7 @@ mod tests {
             },
             PositionRow {
                 account: "C".into(),
-                security_id: 9, // different security — excluded
+                security_id: 9, // different security - excluded
                 qty: 500,
             },
         ];

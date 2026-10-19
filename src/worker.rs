@@ -5,31 +5,31 @@
 
 //! Exchange8:RefData corporate-action transition worker (Sentin8:Cron-driven).
 //!
-//! Stage transitions are executed by Sentin8:Cron by design — the design
+//! Stage transitions are executed by Sentin8:Cron by design - the design
 //! doc (`services/refdata/DESIGN.md` §2, request family 3; master design
 //! `design/sentin8-exchange8-refdata-technical-design.md` §4.1) and the
-//! platform precedent (`sentin8/services/secrets` — the `<leaf>-cron` M2M
+//! platform precedent (`sentin8/services/secrets` - the `<leaf>-cron` M2M
 //! workload + a `POST /v1/internal/schedules/run` proxy-back target) fix
 //! the shape:
 //!
-//! 1. **Boot registration** — ensure the `refdata-cron` workload
-//!    certificate (CERTFREE-4V — scope `sentin8:cron:write` comes from
+//! 1. **Boot registration** - ensure the `refdata-cron` workload
+//!    certificate (CERTFREE-4V - scope `sentin8:cron:write` comes from
 //!    the registry map; grant declared in
 //!    `registration.rs::M2M_GRANTS`), then create the recurring schedule
 //!    `refdata-ca-transitions` at Cron → idempotent per boot (a Cron outage
 //!    only delays registration; a re-run re-registers the same named-slug
-//!    domain+type row — Cron's ticker dedupes the fired job per tick).
-//! 2. **Proxy-back** — Cron fires a bounded M2M call to this service's
+//!    domain+type row - Cron's ticker dedupes the fired job per tick).
+//! 2. **Proxy-back** - Cron fires a bounded M2M call to this service's
 //!    `POST /v1/internal/schedules/run` with `{schedule_type, env_id,
 //!    idempotency_key, correlation_id}`; the handler verifies the bearer
-//!    (step 1–4), gates the dedicated action `exchange8:refdata:corporate-
-//!    action:transition` through Shield (step 5 — the mirror admits the
+//!    (step 1-4), gates the dedicated action `exchange8:refdata:corporate-
+//!    action:transition` through Shield (step 5 - the mirror admits the
 //!    cron scope), then runs [`advance_due_transitions`] for that env.
-//! 3. **Idempotency** — a transition dedupes on
+//! 3. **Idempotency** - a transition dedupes on
 //!    `(corporate_action id, target stage)`: the guarded `UPDATE ...
 //!    WHERE stage = <current and due>` commits exactly once (re-delivery
 //!    of a tick finds the stage already advanced and skips).
-//! 4. **Emit** — every advanced transition writes (a) the guarded domain
+//! 4. **Emit** - every advanced transition writes (a) the guarded domain
 //!    UPDATE, (b) the outbox row (same tx,
 //!    `exchange8:refdata:corporate-action:stage-advanced|completed`), and
 //!    (c) the audit journal row (`Execute`) in the same transaction.
@@ -38,7 +38,7 @@
 //! `None`); reaching it emits `completed` (the Settlement handoff key) and
 //! ends the row's advancement. `announced → ex_date` adjustments apply at
 //! the owning services (Exchange8:Clearing consumes the event; this service does
-//! not write positions — design §1 delegation table).
+//! not write positions - design §1 delegation table).
 
 use sqlx::{Acquire, Row};
 use uuid::Uuid;
@@ -47,10 +47,10 @@ use crate::events::{self, AuditOp, EventIdentity};
 
 /// Cron schedule `domain` (the schedule's owning service slug).
 pub const CRON_DOMAIN: &str = "exchange8-refdata";
-/// Cron schedule `schedule_type` — Cron's ticker proxies back this kind.
+/// Cron schedule `schedule_type` - Cron's ticker proxies back this kind.
 pub const CRON_SCHEDULE_TYPE: &str = "refdata-ca-transitions";
 /// Standard 5-field expression: every 5 minutes (low volume, correctness >
-/// throughput — master design §9; missed ticks recover on the next tick by
+/// throughput - master design §9; missed ticks recover on the next tick by
 /// re-running the due transitions).
 pub const CRON_EXPRESSION: &str = "*/5 * * * *";
 
@@ -70,7 +70,7 @@ pub struct DueTransition {
     pub current_stage: String,
     /// The next stage key this run advances to.
     pub next_stage: String,
-    /// The action kind (`split`, `cash_dividend`, … —
+    /// The action kind (`split`, `cash_dividend`, … -
     /// `refdata::ActionType::key`).
     pub action_type: String,
 }
@@ -78,7 +78,7 @@ pub struct DueTransition {
 /// The stage-vs-date predicate table (design §2 lifecycle):
 /// `announced → ex_date` when today ≥ `ex_date`, `… → record_date` when
 /// today ≥ `record_date`, `… → pay_date` when today ≥ `pay_date`. Returns
-/// the scan SQL's stage ranking inline — kept as a pure function for the
+/// the scan SQL's stage ranking inline - kept as a pure function for the
 /// stage-order unit test.
 pub fn stage_rank(stage: &str) -> Option<u8> {
     match stage {
@@ -168,7 +168,7 @@ pub async fn advance_due_transitions(
         .await
         .map_err(sentin8::shell::err_db)?;
         let Some(row) = payload else {
-            // Lost the race (already advanced or cancelled) — the
+            // Lost the race (already advanced or cancelled) - the
             // idempotency guarantee (action id, target stage).
             tx.rollback().await.map_err(sentin8::shell::err_db)?;
             continue;

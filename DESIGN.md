@@ -1,8 +1,8 @@
-# Exchange8:RefData — Detailed Design Document
+# Exchange8:RefData - Detailed Design Document
 
 ## 1. Scope & Context
 
-**Owned by Exchange8:RefData** — PostgreSQL schema `refdata` inside the vertical
+**Owned by Exchange8:RefData** - PostgreSQL schema `refdata` inside the vertical
 database `exchange8` (database-per-vertical, schema-per-service), the domain
 APIs over those tables, the local `refdata.outbox` + `refdata.audit_journal`
 durability pairs, and the Shield scope-mirror policy set for action
@@ -19,7 +19,7 @@ durability pairs, and the Shield scope-mirror policy set for action
 | Corporate actions | `refdata.corporate_action`, `refdata.corporate_action_entitlement`, `refdata.corporate_action_calendar` |
 | Durability (DBX) | `refdata.outbox`, `refdata.audit_journal` |
 
-**Authorization vocabulary owned** — scopes `exchange8:refdata:read`,
+**Authorization vocabulary owned** - scopes `exchange8:refdata:read`,
 `exchange8:refdata:write`, `exchange8:corporate-action:read`,
 `exchange8:corporate-action:write`, policy-admin scopes
 `exchange8:refdata:policy:read|write`; Shield policy set `scope-mirror`
@@ -27,7 +27,7 @@ durability pairs, and the Shield scope-mirror policy set for action
 (HTTP 404); PostgreSQL role `exchange8_refdata_service` (no BYPASSRLS, db
 `exchange8` only); DSN env var `EXCHANGE8_REFDATA_DATABASE_URL`.
 
-**Not owned (delegations)** — trade ledger and busts (Exchange8:Clearing), matching
+**Not owned (delegations)** - trade ledger and busts (Exchange8:Clearing), matching
 (Exchange8:ME), settlement delivery of cash/stock entitlements (Exchange8:Settlement),
 margin treatment (Exchange8:Margin), corporate-action lifecycle *transitions*
 (Sentin8:Cron), position adjustment application (consumed from
@@ -108,10 +108,10 @@ graph TD
 ## 2. Runtime Architecture
 
 The binary wires only the router extension (`extend_router`); everything
-else — boot order, pool capping, Shield engine boot, relays, health,
-middleware stack, PQ-TLS termination — comes from `sentin8::shell::serve`:
+else - boot order, pool capping, Shield engine boot, relays, health,
+middleware stack, PQ-TLS termination - comes from `sentin8::shell::serve`:
 
-- **Registration** — `--print-registration` (flag check before any
+- **Registration** - `--print-registration` (flag check before any
   initialization) emits `service_type exchange8:refdata`, subdomain
   `exchange8-refdata`, health path `/v1/health`, admin scopes, error codes,
   the `AdminUi` block (`Reference Data`, pages securities / markets /
@@ -121,7 +121,7 @@ middleware stack, PQ-TLS termination — comes from `sentin8::shell::serve`:
   relations (`[]`) and the seven M2M workload grants (own client both
   spellings + `sentin8:cron:write`, the Shield pair, the transition
   `refdata-cron` workload, the audit pusher, the TLS resolver).
-- **Router** — `GET/POST /v1/securities`, `GET/PUT/DELETE
+- **Router** - `GET/POST /v1/securities`, `GET/PUT/DELETE
   /v1/securities/{id}`, `GET/POST /v1/markets` + `PUT /v1/markets/{id}`,
   `GET/POST /v1/corporate-actions` + `GET /v1/corporate-actions/calendar` +
   `POST /v1/corporate-actions/{id}/cancel`, `GET/POST /v1/tick-rules` +
@@ -133,29 +133,29 @@ middleware stack, PQ-TLS termination — comes from `sentin8::shell::serve`:
   `POST /v1/internal/schedules/run`, the shell `/v1/health`, and the shell
   Shield policy-admin mount (`/v1/admin/policy-sets…`,
   `/v1/admin/relations…`, `/v1/admin/attributes…`).
-- **Handlers** — `handlers.rs` implements the 8-step pipeline per request:
+- **Handlers** - `handlers.rs` implements the 8-step pipeline per request:
   `verify_token` → Shield `policy::require` → pool acquire → tx begin →
-  awaited `set_tenant_context` → SQL with explicit `env_id` → commit — and
+  awaited `set_tenant_context` → SQL with explicit `env_id` → commit - and
   then (mutations only) the durability pair on the SAME tx: the outbox
   envelope (`events::emit_outbox`) + the audit journal row
   (`events::journal_mutation`). The RFW page route (`admin_ui_page`) gates
   on the page's declared action before rendering the definition.
-- **Domain modules** — `refdata.rs` (action types, stages, adjustment math,
-  entitlements — pure) and `crossref.rs` (identifier resolver + CA calendar
-  + record-date entitlement projection — pure); both are libraries the
+- **Domain modules** - `refdata.rs` (action types, stages, adjustment math,
+  entitlements - pure) and `crossref.rs` (identifier resolver + CA calendar
+  + record-date entitlement projection - pure); both are libraries the
   handlers and the transition worker build on, covered by in-crate tests.
-- **Event envelopes** — `events.rs` (`DESIGN.md` §4): the typed envelope
+- **Event envelopes** - `events.rs` (`DESIGN.md` §4): the typed envelope
   builders (`security_event`, `market_event`, `ca_event`, `simple_event`),
-  the outbox writer (`emit_outbox` — same tx as the domain change), and the
-  audit journal writer (`journal_mutation`) — the two durability rows
+  the outbox writer (`emit_outbox` - same tx as the domain change), and the
+  audit journal writer (`journal_mutation`) - the two durability rows
   every mutating handler writes per DESIGN.md §5.5.
-- **Transition worker** — `worker.rs` (`DESIGN.md` §10 worker): the boot
+- **Transition worker** - `worker.rs` (`DESIGN.md` §10 worker): the boot
   registers the recurring `refdata-ca-transitions` schedule with
   Sentin8:Cron (via the DCR'd `refdata-cron` M2M workload),
   `handlers::internal_schedules_run` is the proxy-back target, and
   `advance_due_transitions` runs the guarded stage advancement (outbox +
   journal rows per advanced action, SAME tx).
-- **Background tasks (shell-spawned)** — the outbox relay (LISTEN/NOTIFY on
+- **Background tasks (shell-spawned)** - the outbox relay (LISTEN/NOTIFY on
   `refdata_outbox_changed` + 5s safety poll, batch 100, M2M produce), the
   audit-journal pusher (5s poll, M2M `POST /v1/audit`), the Shield
   hot-reload direct consumer, and the stat emitter.
@@ -206,7 +206,7 @@ graph TD
     CRON -->|"POST /v1/internal/schedules/run M2M bearer"| TRIGGER
 ```
 
-**Request family 1 — security upsert (POST /v1/securities):**
+**Request family 1 - security upsert (POST /v1/securities):**
 
 ```mermaid
 sequenceDiagram
@@ -239,7 +239,7 @@ sequenceDiagram
     H-->>C: 200 SecurityResponse
 ```
 
-**Request family 2 — Shield policy-admin surface (shell-owned):**
+**Request family 2 - Shield policy-admin surface (shell-owned):**
 
 ```mermaid
 sequenceDiagram
@@ -259,7 +259,7 @@ sequenceDiagram
     participant S2 as runtime engine
 ```
 
-**Request family 3 — corporate-action lifecycle (cron-executed):**
+**Request family 3 - corporate-action lifecycle (cron-executed):**
 
 ```mermaid
 sequenceDiagram
@@ -523,7 +523,7 @@ erDiagram
 Per-table notes:
 
 - All 23 domain tables: env-scoped RLS tier (`env_id`-matching policies, all
-  four DML ops), UUID PKs, no secret-bearing columns — the schema stores
+  four DML ops), UUID PKs, no secret-bearing columns - the schema stores
   reference data and corporate-action *parameters* only; provider or session
   credentials do not exist here.
 - `refdata.security` is the FK anchor for the vertical: `contract_id`
@@ -531,16 +531,16 @@ Per-table notes:
   crypto extension; `price_scale`/`qty_scale` are the D13 fixed-point
   contract the matching engine and market data re-key against.
 - `refdata.currency.code` is a TEXT PK (3-letter ISO) referenced by
-  `refdata.security.currency` — a duplicate/unknown currency surfaces as a
+  `refdata.security.currency` - a duplicate/unknown currency surfaces as a
   422 on security create; `lis_exchange_rate` carries the LIS FX rate
   (Exchange8:RFQ declares a SELECT grant on it).
-- `refdata.book_connection.connection_id` holds gateway-owned comp ids —
+- `refdata.book_connection.connection_id` holds gateway-owned comp ids -
   membership data, not credentials.
 - `refdata.corporate_action_entitlement` is the record-date snapshot
   (holder × ratio); `refdata.corporate_action_calendar` indexes upcoming
   actions per env with `effective_date`.
 
-**Domain state machine** — `refdata.corporate_action.stage`:
+**Domain state machine** - `refdata.corporate_action.stage`:
 
 ```mermaid
 stateDiagram-v2
@@ -555,11 +555,11 @@ stateDiagram-v2
 
 The durability tables follow the same env-scoped RLS tier:
 
-- `refdata.outbox` — `event_type`, `stream_family`, `payload JSONB`,
+- `refdata.outbox` - `event_type`, `stream_family`, `payload JSONB`,
   `publisher_id_token/publisher_subject`, `relayed/relayed_at/
   relay_attempts`; partial index on unrelayed rows; `AFTER INSERT` trigger
   `outbox_notify_trigger` → `pg_notify('refdata_outbox_changed')`.
-- `refdata.audit_journal` — `action`, `target_resource_type/id`,
+- `refdata.audit_journal` - `action`, `target_resource_type/id`,
   `actor_user_id/actor_subject_type`, `severity`, `correlation_id`,
   `before_state/after_state/details JSONB`, `pushed/pushed_at`; partial
   index on unpushed rows.
@@ -567,10 +567,10 @@ The durability tables follow the same env-scoped RLS tier:
 ## 4. API Surface
 
 All data endpoints run the identical gate; the `/v1/admin/*` routes are RFW
-data-endpoint aliases of the same handlers (the RFW renderer is POST-only —
+data-endpoint aliases of the same handlers (the RFW renderer is POST-only -
 the `/update`, `/delete`, `/cancel` admin routes are the POST aliases of the
 PUT/DELETE mutations). The RFW page definitions are served at
-`GET /v1/admin/ui/{page}` (the service mounts them — the shell does not
+`GET /v1/admin/ui/{page}` (the service mounts them - the shell does not
 auto-serve declared pages). The Shield policy-admin surface and the shell
 health endpoint are mounted by the shell.
 
@@ -594,10 +594,10 @@ health endpoint are mounted by the shell.
 | `/v1/admin/ui/{page}` | GET | admin / RFW | the page's action (`exchange8:refdata:read` / `exchange8:corporate-action:read`); 404 for undeclared pages | none (read) |
 | `/v1/admin/securities…`, `/v1/admin/markets…`, `/v1/admin/corporate-actions…` | GET/POST/PUT/DELETE + `/update`, `/delete`, `/cancel` POST aliases | admin / RFW data | same as the matching public route | same as the matching public route |
 | `/v1/internal/schedules/run` | POST | Sentin8:Cron proxy-back (M2M) | `exchange8:refdata:corporate-action:transition` (mirror admits `sentin8:cron:write`) | `…corporate-action:stage-advanced` / `…completed` |
-| `/v1/health` | GET | ops (captain) | none (liveness + `active_connections` + build hash) | — |
-| `/v1/admin/policy-sets…` | GET/POST/PUT/DELETE | admin / RFW (Shield) | policy scopes incl. `exchange8:refdata:policy:read|write` | — |
-| `/v1/admin/relations…`, `/v1/admin/attributes…` | GET/POST/PUT/DELETE | admin / RFW (Shield) | policy scopes | — |
-| `/openapi.json` | GET | tooling | none | — |
+| `/v1/health` | GET | ops (captain) | none (liveness + `active_connections` + build hash) | - |
+| `/v1/admin/policy-sets…` | GET/POST/PUT/DELETE | admin / RFW (Shield) | policy scopes incl. `exchange8:refdata:policy:read|write` | - |
+| `/v1/admin/relations…`, `/v1/admin/attributes…` | GET/POST/PUT/DELETE | admin / RFW (Shield) | policy scopes | - |
+| `/openapi.json` | GET | tooling | none | - |
 
 Read filters: `symbol`, `security_type`, `market_id`, `limit` (default 100,
 capped at 500), ordered by symbol. Write validation: non-empty symbol (422),
@@ -608,14 +608,14 @@ Market create validates the single-char code + the `market_type`/
 via `permanently_delisted`).
 
 **Every mutating handler** writes, in ONE transaction: the domain row change
-→ the `refdata.outbox` row (`events::emit_outbox` — payload-complete
+→ the `refdata.outbox` row (`events::emit_outbox` - payload-complete
 envelope carrying `env_id`, `subject_id`, `correlation_id`,
 `idempotency_key`, and the full row snapshot) → the `refdata.audit_journal`
-row (`events::journal_mutation` — create/update/delete/execute with the
+row (`events::journal_mutation` - create/update/delete/execute with the
 before/after snapshots). Reads are NOT journalized (audit-journal pattern:
 state changes only).
 
-**Event flow (outbox → Bus → trigger) — the durability contract:**
+**Event flow (outbox → Bus → trigger) - the durability contract:**
 
 ```mermaid
 sequenceDiagram
@@ -636,7 +636,7 @@ sequenceDiagram
 ```
 
 **Outbound event vocabulary (stream family `exchange8`; event format
-`vertical:service:resource:operation` — all-colon, no dots):**
+`vertical:service:resource:operation` - all-colon, no dots):**
 `exchange8:refdata:security:created|updated|deleted`,
 `exchange8:refdata:market:created|updated`,
 `exchange8:refdata:corporate-action:announced|stage-advanced|completed|
@@ -650,7 +650,7 @@ in the surface.
 
 ### 5.1 Authentication & token verification
 
-Step 1–2 of the pipeline: `verify_token` → `sentin8_auth_client::
+Step 1-2 of the pipeline: `verify_token` → `sentin8_auth_client::
 verify_bearer_token` against Sentin8:Auth (issuer config, JWKS cached behind
 the shared client). M2M and user tokens verify identically; `token_tp` never
 bypasses Shield (guarded by the policy wiring tests). The PQ crypto provider
@@ -675,7 +675,7 @@ sequenceDiagram
 client input. The awaited `set_tenant_context` helper runs
 `SELECT sentin8_set_tenant_context($1)` (schema-unqualified, resolved via
 the role's `search_path = refdata, public`) on the same connection and
-transaction as the query — `set_config(..., true)` makes it
+transaction as the query - `set_config(..., true)` makes it
 transaction-local, so a context set on pool connection A cannot leak to
 query B.
 
@@ -702,7 +702,7 @@ env. The hot-reload consumer picks up admin edits within the same process
 Produce idempotency = outbox row id (one Bus-side dedupe per event). The
 relay's per-row retry budget (`RELAY_MAX_ATTEMPTS = 10`) keeps a permanently
 rejected row as a DLQ marker (`relayed=false`, attempts counted) for manual
-replay — at-least-once delivery, effectively-once consumption via consumer
+replay - at-least-once delivery, effectively-once consumption via consumer
 groups plus dedupe keys.
 
 ### 5.5 Audit journaling
@@ -738,13 +738,13 @@ Post-quantum exclusive: in-process termination via `sentin8_tls`
 (X25519MLKEM768 + ML-DSA-65 posture), the Graviola-based PQ provider is
 installed before any HTTPS egress; the database-free TLS library resolves
 hostnames via Sentin8:Sys `GET /v1/resolve/hostname` with the
-`exchange8-refdata-tls` M2M workload scope `sentin8:sys:instances:read` —
+`exchange8-refdata-tls` M2M workload scope `sentin8:sys:instances:read` -
 no platform-DB access rides the TLS path. No `danger_accept_invalid_certs`
 anywhere.
 
 ## 6. Failure Modes & Recovery
 
-**Outbox relay after a Bus outage** — fail-open: the relay task may fail to
+**Outbox relay after a Bus outage** - fail-open: the relay task may fail to
 build (Bus or DCR unavailable at boot) without blocking service startup;
 rows stay `relayed = false` and the 5s safety poll catches up once Bus
 returns. Only a permanent 4xx rejection (contract violation) exhausts the
@@ -760,7 +760,7 @@ flowchart TD
     B -->|boot-time Bus absent| F["relay disabled - service serves traffic - rows persist for later polls"]
 ```
 
-**Audit-journal push after a Sys outage** — same fail-open shape: rows
+**Audit-journal push after a Sys outage** - same fail-open shape: rows
 queue, the pusher retries each 5s pass with a 2s backoff on errors, lazy-DCR
 retries the `{leaf}-audit` workload registration until Auth admits it, and
 marks `pushed` only after a 2xx. Batch size 200 per pass.
@@ -785,13 +785,13 @@ sequenceDiagram
     end
 ```
 
-**Pool saturation** — the pool is capped (`SENTIN8_PG_POOL_MAX`, default 3);
+**Pool saturation** - the pool is capped (`SENTIN8_PG_POOL_MAX`, default 3);
 `state.pool.acquire()` awaits backpressure rather than escalating
 connections; RLS context and queries run inside one short transaction each.
 `make stop` on the vertical frees DB connections when the platform is
 saturated during rebuilds.
 
-**Corporate-action cron failure** — transitions are cron-executed by design:
+**Corporate-action cron failure** - transitions are cron-executed by design:
 a missed ex-date leaves rows at their current stage (`halted`/calendar flags
 keep trading honest), the recovery path re-runs the transition for the due
 stage, and a retroactive adjustment is audited. An entitlement snapshot
@@ -808,7 +808,7 @@ flowchart TD
     F["missed ex-date detected"] --> G["retroactive adjustment - audited in journal"]
 ```
 
-**Boot-time failure** — refuse-to-start on: PostgreSQL < 18, wrong
+**Boot-time failure** - refuse-to-start on: PostgreSQL < 18, wrong
 vertical database (DSN database name must equal the vertical leaf), an
 unparsable Shield set (fail-closed at boot), a missing port. `--print-
 registration` works with no DB at all.
@@ -837,9 +837,9 @@ graph LR
 ```
 
 - **Pool capping**: `sentin8_config::pg_pool::connect` (max 3 default,
-  `SENTIN8_PG_POOL_MAX` override) — protect the ~20-service cluster from
+  `SENTIN8_PG_POOL_MAX` override) - protect the ~20-service cluster from
   pool exhaustion.
-- **Hot path**: `GET /v1/securities` — one indexed query
+- **Hot path**: `GET /v1/securities` - one indexed query
   (`idx_exchange8_security_env` on `env_id`) per request, `ORDER BY symbol LIMIT
   500 max`; no response cache today (low read amplification per env).
 - **Backpressure**: pool acquire awaits; relay/pusher loops drain bounded
@@ -859,7 +859,7 @@ graph LR
 - The Shield step-5 decision is the only gate after verify; the JWT `scope`
   claim never decides; no per-handler scope checks fork the decision.
 - The registered `scope-mirror` set covers every handler `EvalTarget` and
-  passes the enroll-time dry-run (`dry_run_mirror`) — an enforced set that
+  passes the enroll-time dry-run (`dry_run_mirror`) - an enforced set that
   denies its own grants never ships.
 - No role on `exchange8` carries BYPASSRLS; the probe role used by the SQL
   matrix is a NOBYPASSRLS test fixture, not a service role.
@@ -900,28 +900,28 @@ graph TD
   (`crossref.rs` tests), RFW page shape (hex icons, POST-friendly action
   resources, page coverage), handler scope matrix
   (deny empty/foreign/sibling, allow exact/unioned/platform-admin,
-  prefix-permissive grants vs exact denials, naming convention, guard–scope
+  prefix-permissive grants vs exact denials, naming convention, guard-scope
   parity).
 - **Handler oneshot** (`tests/handlers_oneshot.rs`): drives the real router
-  through `tower::oneshot` with a never-connected pool — route mounting,
+  through `tower::oneshot` with a never-connected pool - route mounting,
   401-before-DB (415 on JSON-extractors counts), 405-vs-404 route shape,
   plain-text error envelope. DB-free by construction (gates run before the
   first pool access).
 - **Policy wiring** (`tests/policy.rs`): evaluation against the exact
-  `SCOPE_MIRROR_POLICIES` string the registration declares — no-set deny,
+  `SCOPE_MIRROR_POLICIES` string the registration declares - no-set deny,
   enforced no-match deny, shadow never blocks, mirror covers own grants,
   M2M parity, platform-admin scopes, forbid-beats-permit, role-keyed tenant
   sets, cross-env set isolation, mirror-covers-handler-actions parity, and
   the enroll dry-run gate.
 - **SQL matrix** (`tests/sql_matrix.rs`): against live PostgreSQL 18 as the
-  `exchange8_probe` NOBYPASSRLS role — derives the table list from this
+  `exchange8_probe` NOBYPASSRLS role - derives the table list from this
   service's own `sql/init.sql` (self-maintaining), asserts FORCE RLS +
   ≥1 policy on every declared table, then the behavioral matrix: no context
   → 0 rows, insert without context → rejected (savepoint-recoverable),
   own-env context → exactly the probe row, cross-env context → 0 rows; one
   rolled-back transaction, skips silently offline so plain `cargo test`
   stays hermetic.
-- **E2E (platform)**: UI-only flows through the browser and the BFF proxy —
+- **E2E (platform)**: UI-only flows through the browser and the BFF proxy -
   reference data reachable through the TLS/ingress pipeline; no direct SQL
   or backend calls from tests.
 - **Deliberately not tested here**: protocol codecs (wire/fix/itch crates),
@@ -933,20 +933,20 @@ graph TD
 
 - **Reference-data caching for hot paths**: consumers currently read
   through RLS on every use; a MemBus state refresh (`sentin8-membus`
-  newest-wins) for the security master would remove per-request DB reads —
+  newest-wins) for the security master would remove per-request DB reads -
   unimplemented; no cache-invalidation channel exists yet.
 - **Crypto corporate actions** (forks, airdrops, staking rewards) exist in
-  the design but neither as `ActionType` variants nor tables — deferred
+  the design but neither as `ActionType` variants nor tables - deferred
   into the schema's `security_type='Crypto'` + `asset_id` extension only.
 - **Event-driven position adjustments + entitlements**: the transition
   worker emits the lifecycle events (announced/stage-advanced/completed),
   but the ex-date position-adjustment projector (Exchange8:Clearing consuming
   `exchange8:clearing:position:adjusted`), the record-date entitlement
   snapshot writer, and the pay-date delivery handoff to Exchange8:Settlement
-  remain the CONSUMING services' wiring — this service owns the calendar
+  remain the CONSUMING services' wiring - this service owns the calendar
   and the events, not the consumers.
 - **Customer/location/contact/trader/capitalization APIs**: the tables are
-  complete and RLS'd, but no HTTP handlers exist for that master yet —
+  complete and RLS'd, but no HTTP handlers exist for that master yet -
   every other refdata table has its mutation surface.
 - **Record-date entitlement snapshot**: no projector persists positions ×
   ratio into `refdata.corporate_action_entitlement` at the record-date

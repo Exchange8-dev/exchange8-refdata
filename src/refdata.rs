@@ -3,7 +3,7 @@
 // SPDX-FileCopyrightText: Copyright Contributors to the Exchange8:Refdata
 // SPDX-License-Identifier: Apache-2.0
 
-//! Exchange8:RefData core — corporate-action adjustments.
+//! Exchange8:RefData core - corporate-action adjustments.
 //!
 //! Corporate-action lifecycle and the ex-date adjustment math (price/qty
 //! transformations applied to positions and market data). The shell wires the

@@ -6,11 +6,11 @@
 //! Exchange8:Dash RFW admin page definitions.
 //!
 //! Each service exposes `GET /v1/admin/ui/{page}` returning an RFW
-//! definition JSON (Sentin8:Dash renders it — services never ship UI code).
+//! definition JSON (Sentin8:Dash renders it - services never ship UI code).
 //! Data endpoints: `POST /v1/admin/{resource}` (RFW renderer only supports
 //! POST, so update/delete are POST-alias routes).
 //!
-//! This module holds the per-service page definitions as pure data — the
+//! This module holds the per-service page definitions as pure data - the
 //! shell mounts them at the admin router. Icons are Material Icons code
 //! points (hex), not names (architecture-principles §4.15).
 //!
@@ -100,7 +100,7 @@ impl RfwPage {
 /// RefData admin pages (DESIGN.md §4 admin/RFW surface): the three pages
 /// the registration declares (`securities` / `markets` / `corporate-
 /// actions`). The page `scope` field is the Shield action the UI-route
-/// gate evaluates (the mirror permits the refdata/CA vocabularies —
+/// gate evaluates (the mirror permits the refdata/CA vocabularies -
 /// registration.rs `SCOPE_MIRROR_POLICIES`).
 pub fn refdata_pages() -> Vec<RfwPage> {
     vec![

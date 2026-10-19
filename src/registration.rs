@@ -15,11 +15,11 @@ use sentin8::registration::{
     RelationDecl, ScheduleDecl, SqlMigration,
 };
 
-/// The Shield text of the declared scope-mirror set — public so the
+/// The Shield text of the declared scope-mirror set - public so the
 /// policy wiring tests (see DESIGN.md §9) assert against the REAL seed.
 ///
 /// Coverage contract (policy wiring tests): EVERY action the handlers
-/// evaluate has a permit — the security + market/tick/holiday/book read
+/// evaluate has a permit - the security + market/tick/holiday/book read
 /// and write vocabulary, the corporate-action read/write vocabulary, and
 /// the cron proxy-back's transition action (the cron workload's declared
 /// `sentin8:cron:write` is the admitted scope; the platform-admin trio
@@ -51,13 +51,13 @@ permit(principal, action == Action::\"exchange8:refdata:corporate-action:transit
 
 /// Default declarative policy set (Sentin8:Policy design §3.2/§3.4,
 /// seeded by `vertical enroll` as `origin='platform'`, `mode='enforced'`):
-/// action-granular scope permits over the LIVE effective scope set — the
+/// action-granular scope permits over the LIVE effective scope set - the
 /// exact mirror of the gates this service's handlers evaluate in step 5
 /// (policy design §4.3). Enforced: step 5 is the only gate; shadow is the
 /// emergency one-UPDATE rollback lever only.
 const POLICIES: &[PolicySetDecl] = &[PolicySetDecl {
     policy_set_name: "scope-mirror",
-    description: "Action-granular scope permits for exchange8:refdata over the LIVE effective scope set. Enforced — step 5 is the only gate.",
+    description: "Action-granular scope permits for exchange8:refdata over the LIVE effective scope set. Enforced - step 5 is the only gate.",
     // Shield text lives in SCOPE_MIRROR_POLICIES (single source).
     policies: SCOPE_MIRROR_POLICIES,
     schema: None,
@@ -65,7 +65,7 @@ const POLICIES: &[PolicySetDecl] = &[PolicySetDecl {
     default_enabled: true,
 }];
 
-/// Default ReBAC relation tuples (design §3.1c) — none declared by this
+/// Default ReBAC relation tuples (design §3.1c) - none declared by this
 /// service today; env admins author their own graph via the relations
 /// admin API.
 const RELATIONS: &[RelationDecl] = &[];
@@ -77,7 +77,7 @@ const PG_ROLES: &[PgRole] = &[PgRole {
         // Grants live in the exchange8 vertical database only (principles §6.6
         // database-per-vertical, schema-per-service).
         database: "exchange8",
-        // This service owns all its reads — no cross-schema grants.
+        // This service owns all its reads - no cross-schema grants.
         cross_schema_grants: &[],
 }];
 
@@ -150,14 +150,14 @@ const ADMIN_UI_PAGES: &[AdminUiPage] = &[
 /// workload this service presents a certificate for; `vertical enroll` upserts the
 /// rows so the fail-closed registry map admits the registration. Scopes use the
 /// full vocabulary form:
-/// - `exchange8:refdata` / `refdata` — the service's own client (both
+/// - `exchange8:refdata` / `refdata` - the service's own client (both
 ///   spellings granted; runtime call sites use the bare short name, the
 ///   map looks up the exact workload): bus produce/consume + the
 ///   shared certificate identity.
-/// - `exchange8:refdata-policy` / `refdata-policy` — Shield hot-reload
+/// - `exchange8:refdata-policy` / `refdata-policy` - Shield hot-reload
 ///   consumer + stat emitter pair.
-/// - `refdata-audit` — shell audit-journal pusher workload (see DESIGN.md §5.5).
-/// - `exchange8-refdata-tls` — database-free HostContextResolver resolve workload
+/// - `refdata-audit` - shell audit-journal pusher workload (see DESIGN.md §5.5).
+/// - `exchange8-refdata-tls` - database-free HostContextResolver resolve workload
 ///   (TLS-RLS-4: `GET /v1/resolve/hostname`, scope
 ///   `sentin8:sys:instances:read`).
 const M2M_GRANTS: &[M2mGrant] = &[
@@ -248,7 +248,7 @@ pub fn print(section: Option<String>) -> anyhow::Result<()> {
         policies: POLICIES,
         relations: RELATIONS,
         event_triggers: &[],
-        // Corporate-action transition sweep (SDD §2.4): every 5 minutes —
+        // Corporate-action transition sweep (SDD §2.4): every 5 minutes -
         // the cron clock drives due-stage advancement; the proxy-back
         // handler runs the stage-predicated transition worker. Constants in
         // `worker.rs` keep the contract honest.

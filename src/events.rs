@@ -7,12 +7,12 @@
 //!
 //! Every mutating handler writes an outbox row in the SAME transaction as
 //! the domain change with a **payload-complete** envelope (event-first rule
-//! — the consumer reacts from the payload alone, no callback): `env_id`,
+//! - the consumer reacts from the payload alone, no callback): `env_id`,
 //! subject, correlation/idempotency ids, and the full domain-row snapshot.
 //! The shell's outbox relay (its own boot step 8b) pushes the rows to
 //! Sentin8:Bus `POST /v1/produce` and marks them relayed.
 //!
-//! Stream family: `exchange8` — the Bus stream key is
+//! Stream family: `exchange8` - the Bus stream key is
 //! `bus:{env_id}:{family}`; the family slug is validated by
 //! `sentin8::bus::outbox::validate_stream_family` (colons are structurally
 //! impossible), matching the sibling convention (`gateway`, `me` leaves).
@@ -25,14 +25,14 @@ use serde_json::{json, Value};
 use uuid::Uuid;
 
 /// Write the outbox row for an envelope in the CALLER's transaction
-/// (same tx as the domain change — outbox-first). The relay (shell boot
+/// (same tx as the domain change - outbox-first). The relay (shell boot
 /// step 8b) pushes it to Bus post-commit; failure of the write aborts the
 /// caller's tx via `?` at the call site. `publisher_subject` carries the
 /// request's verified `sub` so consumers can attribute the event.
 ///
 /// # Errors
 /// Propagates the SQL error (the validator's rejection of the constant
-/// family text is structurally impossible — covered by the registry test).
+/// family text is structurally impossible - covered by the registry test).
 pub async fn emit_outbox(
     tx: &mut sqlx::PgConnection,
     identity: &EventIdentity,
@@ -58,45 +58,45 @@ pub async fn emit_outbox(
 
 /// Stream family for all refdata-emitted events.
 ///
-/// Bare service slug — Bus `XADD bus:{env}:{family}`; colons are
+/// Bare service slug - Bus `XADD bus:{env}:{family}`; colons are
 /// structurally impossible per `sentin8::bus::outbox::validate_stream_family`
 /// (the gateway module covers the same convention, see DESIGN.md §4).
 pub const STREAM_FAMILY: &str = "exchange8";
 
-/// `exchange8:refdata:security:created` — a security row was inserted.
+/// `exchange8:refdata:security:created` - a security row was inserted.
 pub const EV_SECURITY_CREATED: &str = "exchange8:refdata:security:created";
-/// `exchange8:refdata:security:updated` — a security row was updated.
+/// `exchange8:refdata:security:updated` - a security row was updated.
 pub const EV_SECURITY_UPDATED: &str = "exchange8:refdata:security:updated";
-/// `exchange8:refdata:security:deleted` — a security row was deleted.
+/// `exchange8:refdata:security:deleted` - a security row was deleted.
 pub const EV_SECURITY_DELETED: &str = "exchange8:refdata:security:deleted";
-/// `exchange8:refdata:market:created` — a market row was inserted.
+/// `exchange8:refdata:market:created` - a market row was inserted.
 pub const EV_MARKET_CREATED: &str = "exchange8:refdata:market:created";
-/// `exchange8:refdata:market:updated` — a market row was updated.
+/// `exchange8:refdata:market:updated` - a market row was updated.
 pub const EV_MARKET_UPDATED: &str = "exchange8:refdata:market:updated";
-/// `exchange8:refdata:corporate-action:announced` — CA row inserted
+/// `exchange8:refdata:corporate-action:announced` - CA row inserted
 /// (stage `announced`).
 pub const EV_CA_ANNOUNCED: &str = "exchange8:refdata:corporate-action:announced";
-/// `exchange8:refdata:corporate-action:stage-advanced` — the lifecycle
+/// `exchange8:refdata:corporate-action:stage-advanced` - the lifecycle
 /// moved one stage forward (cron transition worker).
 pub const EV_CA_STAGE_ADVANCED: &str = "exchange8:refdata:corporate-action:stage-advanced";
-/// `exchange8:refdata:corporate-action:completed` — the CA reached
+/// `exchange8:refdata:corporate-action:completed` - the CA reached
 /// `pay_date` (terminal stage; delivery handoff to Exchange8:Settlement).
 pub const EV_CA_COMPLETED: &str = "exchange8:refdata:corporate-action:completed";
-/// `exchange8:refdata:corporate-action:cancelled` — a CA was withdrawn
+/// `exchange8:refdata:corporate-action:cancelled` - a CA was withdrawn
 /// by an operator before completion.
 pub const EV_CA_CANCELLED: &str = "exchange8:refdata:corporate-action:cancelled";
-/// `exchange8:refdata:tick-rule:created` — a tick rule row was inserted.
+/// `exchange8:refdata:tick-rule:created` - a tick rule row was inserted.
 pub const EV_TICK_RULE_CREATED: &str = "exchange8:refdata:tick-rule:created";
-/// `exchange8:refdata:tick-rule:updated` — a tick rule row was updated.
+/// `exchange8:refdata:tick-rule:updated` - a tick rule row was updated.
 pub const EV_TICK_RULE_UPDATED: &str = "exchange8:refdata:tick-rule:updated";
-/// `exchange8:refdata:book-connection:created` — a book↔connection
+/// `exchange8:refdata:book-connection:created` - a book↔connection
 /// membership row was inserted.
 pub const EV_BOOK_CONNECTION_CREATED: &str = "exchange8:refdata:book-connection:created";
-/// `exchange8:refdata:holiday:created` — a holiday row was inserted.
+/// `exchange8:refdata:holiday:created` - a holiday row was inserted.
 pub const EV_HOLIDAY_CREATED: &str = "exchange8:refdata:holiday:created";
 
 /// The identity carried inside every envelope (handler-owned, never derived
-/// from DB or headers — event-first: consumers re-key their caches without
+/// from DB or headers - event-first: consumers re-key their caches without
 /// callbacks).
 pub struct EventIdentity {
     /// Tenant environment of the event (the JWT `env_id` for HTTP handlers,
@@ -104,7 +104,7 @@ pub struct EventIdentity {
     pub env_id: Uuid,
     /// Acting subject (JWT `sub`; the cron proxy-back's M2M client id).
     pub subject_id: String,
-    /// Correlation id (from `X-Sentin8-Correlation-Id` when present —
+    /// Correlation id (from `X-Sentin8-Correlation-Id` when present -
     /// otherwise generated; for cron fires the schedule id).
     pub correlation_id: String,
     /// Idempotency key: consumers dedupe on this (stage transitions dedupe
@@ -113,7 +113,7 @@ pub struct EventIdentity {
 }
 
 /// Envelope for a security mutation: the FULL row snapshot (the exact
-/// `SecurityResponse` fields) — consumers (ME, vfeeds, RFQ) re-key their
+/// `SecurityResponse` fields) - consumers (ME, vfeeds, RFQ) re-key their
 /// caches without a read-back.
 pub fn security_event(ev: EVSecurity, sec: &serde_json::Value, identity: &EventIdentity) -> Value {
     json!({
@@ -162,7 +162,7 @@ pub enum MarketOp {
 }
 
 /// Envelope for a corporate-action mutation: ids + ratio + dates + stage
-/// (the full row snapshot) — the transition consumers advance their own
+/// (the full row snapshot) - the transition consumers advance their own
 /// lifecycle view without callbacks.
 pub fn ca_event(operation: CaOp, action: &Value, identity: &EventIdentity) -> Value {
     json!({
@@ -194,7 +194,7 @@ pub enum CaOp {
 }
 
 /// Envelope with the caller-provided snapshot for the smaller surfaces
-/// (tick rule, holiday, book connection) — same completeness contract,
+/// (tick rule, holiday, book connection) - same completeness contract,
 /// fewer columns to project.
 pub fn simple_event(event_type: &'static str, identity: &EventIdentity, snapshot: Value) -> Value {
     json!({
@@ -233,7 +233,7 @@ pub enum AuditOp {
 
 /// Build the audit envelope for one mutation and write the
 /// `refdata.audit_journal` row on the CALLER's transaction (same tx as the
-/// domain change; the shell's pusher — boot step 8c — drains it to
+/// domain change; the shell's pusher - boot step 8c - drains it to
 /// Sentin8:Sys `POST /v1/audit` with the `refdata-audit` M2M workload).
 /// Reads are NOT journalized (audit-journal pattern: state changes only).
 pub async fn journal_mutation(
@@ -275,7 +275,7 @@ pub async fn journal_mutation(
 
 /// Registry test coverage (DESIGN.md §9): every declared event name uses
 /// the platform event format (`vertical:service:resource:operation`, all
-/// colons — no dots) and the stream family validates.
+/// colons - no dots) and the stream family validates.
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -298,7 +298,7 @@ mod tests {
             EV_HOLIDAY_CREATED,
         ];
         for n in NAMES {
-            // Format contract: `vertical:service:resource:operation` —
+            // Format contract: `vertical:service:resource:operation` -
             // all-colon segments, no dots. Hyphenated segments (the
             // corporate-action vocabulary) are the platform's scope convention.
             let segs: Vec<&str> = n.split(':').collect();

@@ -1,4 +1,4 @@
-# Exchange8:RefData — Business Requirements & Functionality
+# Exchange8:RefData - Business Requirements & Functionality
 
 > Audience: product owners, business analysts, and anyone evaluating what
 > Exchange8:RefData **does for the business**. For architecture read `README.md`;
@@ -11,7 +11,7 @@
   market state.
 - Turn corporate-action announcements (dividends, splits, mergers, spin-offs,
   rights, symbol changes, delistings) into a controlled, auditable lifecycle
-  with per-holder entitlements — so holders are credited exactly once and
+  with per-holder entitlements - so holders are credited exactly once and
   market data stays consistent through the transition.
 - Give every tenant (environment) an isolated reference-data namespace:
   securities, customers, books and calendars are invisible across tenants by
@@ -19,7 +19,7 @@
 - Protect order flow: read access to the security master is available to
   order-placing clients without giving them any write power over reference
   data.
-- Serve as the identity cross-walk of the market — symbol, ISIN, CUSIP,
+- Serve as the identity cross-walk of the market - symbol, ISIN, CUSIP,
   SEDOL and FIGI all resolve to one security, with conflicting mappings
   flagged for operations rather than guessed.
 
@@ -29,20 +29,20 @@
 
 | Capability | Where it lives today | Notes |
 |---|---|---|
-| Security master with per-env isolation — list/detail/create/update/delete securities | Implemented — `GET/POST /v1/securities`, `GET/PUT/DELETE /v1/securities/{id}` (+ `/v1/admin/securities` aliases incl. POST `/update`/`/delete`) | filters by symbol, type, market; page limit capped; referenced rows delete-guarded (delist instead) |
-| Precision contract (`price_scale`, `qty_scale`, `min_size`) | Implemented — security create + update with defaults (×10⁴ prices) | consumers key on the scales |
-| Market definitions (Exchange/MTF/Dark, lot size, calendar vs continuous mode) | Implemented — `GET/POST /v1/markets`, `PUT /v1/markets/{id}` (+ `/v1/admin/markets`, POST `/update`) | single-char code unique per env; type/mode vocabulary validated |
+| Security master with per-env isolation - list/detail/create/update/delete securities | Implemented - `GET/POST /v1/securities`, `GET/PUT/DELETE /v1/securities/{id}` (+ `/v1/admin/securities` aliases incl. POST `/update`/`/delete`) | filters by symbol, type, market; page limit capped; referenced rows delete-guarded (delist instead) |
+| Precision contract (`price_scale`, `qty_scale`, `min_size`) | Implemented - security create + update with defaults (×10⁴ prices) | consumers key on the scales |
+| Market definitions (Exchange/MTF/Dark, lot size, calendar vs continuous mode) | Implemented - `GET/POST /v1/markets`, `PUT /v1/markets/{id}` (+ `/v1/admin/markets`, POST `/update`) | single-char code unique per env; type/mode vocabulary validated |
 | MIC venue registry + currency/FX-rate registry | Table-backed (seeded CAD/USD/BTC, XTSX/XTSE/XCNQ/LX) | `refdata.venue`, `refdata.currency` |
-| Customer/firm directory with sites, contacts, traders, notional capitalization | Table-backed — API not yet exposed | `refdata.customer*`, `refdata.broker_trader`, `refdata.capitalization` |
-| Order-book configuration (book codes, tokens, preferencing, session times, connections) | Membership API live — `POST /v1/books/connections` (outbox event); book master/session times table-backed | `refdata.book*` |
-| Tick rules & tick bands | Implemented — `GET/POST /v1/tick-rules`, `PUT /v1/tick-rules/{id}` (rule + bands in one write) | `refdata.tick_rule*` |
-| Market holiday calendars | Implemented — `POST /v1/holidays` (date + name + per-market closure rows) | reads table-backed; `refdata.holiday*` |
+| Customer/firm directory with sites, contacts, traders, notional capitalization | Table-backed - API not yet exposed | `refdata.customer*`, `refdata.broker_trader`, `refdata.capitalization` |
+| Order-book configuration (book codes, tokens, preferencing, session times, connections) | Membership API live - `POST /v1/books/connections` (outbox event); book master/session times table-backed | `refdata.book*` |
+| Tick rules & tick bands | Implemented - `GET/POST /v1/tick-rules`, `PUT /v1/tick-rules/{id}` (rule + bands in one write) | `refdata.tick_rule*` |
+| Market holiday calendars | Implemented - `POST /v1/holidays` (date + name + per-market closure rows) | reads table-backed; `refdata.holiday*` |
 | Security identifier cross-reference (SYMBOL/ISIN/CUSIP/SEDOL/FIGI) with conflict flagging | Implemented as domain library + table | `CrossRef`, `refdata.security_identifier` |
-| Corporate-action catalogue: 9 action kinds with ratio, dates and lifecycle stage | Implemented — announce (`POST /v1/corporate-actions`), cancel, calendar view; transitions are Sentin8:Cron-driven (the proxy-back executes them) | `refdata.corporate_action*` |
+| Corporate-action catalogue: 9 action kinds with ratio, dates and lifecycle stage | Implemented - announce (`POST /v1/corporate-actions`), cancel, calendar view; transitions are Sentin8:Cron-driven (the proxy-back executes them) | `refdata.corporate_action*` |
 | Ex-date adjustment math (positions & reference prices) and entitlement snapshots | Implemented as domain library (value-preserving integer math) | `adjust_qty`, `adjust_price`, `snapshot_entitlements` |
 | Corporate-action calendar windows (ex/record/pay per date) | Implemented as domain library | `CaCalendar` |
-| Shield policy administration (policy sets, relations, attributes) | Implemented — shell-mounted, per-service scope | policy-admin API |
-| Admin console pages for the reference-data surface (RFW) | Implemented — `GET /v1/admin/ui/{securities|markets|corporate-actions}` page definitions + `/v1/admin/{resource}` data endpoints (POST-alias mutations) | every mutation journals + emits |
+| Shield policy administration (policy sets, relations, attributes) | Implemented - shell-mounted, per-service scope | policy-admin API |
+| Admin console pages for the reference-data surface (RFW) | Implemented - `GET /v1/admin/ui/{securities|markets|corporate-actions}` page definitions + `/v1/admin/{resource}` data endpoints (POST-alias mutations) | every mutation journals + emits |
 
 ### What the service does NOT own (business boundary)
 
@@ -74,7 +74,7 @@
 | Create security | Requires a write-authorized principal; symbol must be non-empty; symbol is unique per environment (duplicate → conflict); currency must exist; precision defaults to ×10⁴ price scale, integer quantities |
 | List securities | Any reader (refdata reader, order-placer, or env/platform admin) sees only its own environment's securities, filterable and capped |
 | Get security | Same isolation; unknown id → not-found error code `exchange8_security_not_found` |
-| Market state fields | `trading_state` Open/Closed, `halted` flag, `shortable` Y/E/N, `permanently_delisted` — the operating states every service keys trading behavior against |
+| Market state fields | `trading_state` Open/Closed, `halted` flag, `shortable` Y/E/N, `permanently_delisted` - the operating states every service keys trading behavior against |
 
 ### Customer & firm directory
 
@@ -84,7 +84,7 @@
 | Sites (locations) | Primary/shipping/billing addresses per firm, enablement status per site |
 | Contacts & mapping | Contact rows (type, name, phone, email) tied to firms and to their locations |
 | Traders | A trader belongs to exactly one firm per environment (`user_id` unique per firm), with optional CUID override |
-| Capitalization | Notional base per (location, currency) — the notional base business relies on for entitlement/capitalization checks |
+| Capitalization | Notional base per (location, currency) - the notional base business relies on for entitlement/capitalization checks |
 
 ### Markets, venues & calendars
 
@@ -93,7 +93,7 @@
 | Market definitions | One-character market code unique per environment; type Exchange/MTF/Dark; lot size; hidden-order and EBBO flags; calendar vs continuous market mode |
 | MIC venues | ISO 10383 MIC registry with names, per environment |
 | Currencies | 3-letter ISO code registry with the LIS exchange rate used by LIS checks and FX-adjacent flows |
-| Holidays | Market holiday calendar (date + name) mapped per market — feeding trading-calendar behavior |
+| Holidays | Market holiday calendar (date + name) mapped per market - feeding trading-calendar behavior |
 
 ### Order books
 
@@ -151,26 +151,26 @@ record-date entitlements would be the future inbound surface.
 
 ## 5. Business Rules & Invariants
 
-1. Each environment sees exactly its own reference data — enforced by RLS on
+1. Each environment sees exactly its own reference data - enforced by RLS on
    every table, plus the explicit environment filter on every query; a
    caller with no tenant context sees nothing and may write nothing.
 2. Securities are unique by symbol per environment; currency must resolve to
    the currency registry.
 3. Reference data is read-only for order-placing clients; only refdata
    writers (and platform administrators) may create or change securities.
-4. Every corporate action runs its lifecycle in order — announcements precede
+4. Every corporate action runs its lifecycle in order - announcements precede
    ex-dates, record dates precede pay dates; pay-date is terminal and no
    stage can be skipped or reversed.
 5. Ex-date adjustments are value-preserving: $qty × price$ (in raw ticks) is
    invariant across split/reverse-split/cash-dividend adjustments (integer
    raw-tick math, no floating point, no rounding drift).
-6. Entitlements are computed from the record-date position snapshot only —
+6. Entitlements are computed from the record-date position snapshot only -
    holders at record date, not at pay date, receive the entitlement.
 7. Identifier cross-references never guess: a value mapping to two
    securities through different schemes is flagged, not resolved.
 8. Reference data contains no secrets: provider credentials, keys, or payment
    details never appear in any `refdata` table.
-9. Events are delivered at-least-once with dedupe by the outbox row id —
+9. Events are delivered at-least-once with dedupe by the outbox row id -
    consumers can treat delivery as effectively exactly-once.
 10. Audit is never lost to an outage: journal rows persist locally until
     Sentin8:Sys acknowledges them.
@@ -193,7 +193,7 @@ record-date entitlements would be the future inbound surface.
   (quantity × price preserved in raw ticks); entitlement snapshots match
   position records at record date.
 - **Isolation**: zero cross-environment reference-data leakage (the SQL
-  matrix — no context, own env, cross env — passes on every table).
+  matrix - no context, own env, cross env - passes on every table).
 - **Read latency**: security lookups answered from a single indexed query on
   `env_id` (no N+1 behavior, per-request limit ≤ 500).
 - **Availability**: the service boots and serves read traffic even when
@@ -204,7 +204,7 @@ record-date entitlements would be the future inbound surface.
   authorization decided by Shield with the registered mirror set covering
   every endpoint gate (wiring tests prove coverage parity).
 - **Throughput ceiling by design**: low event volume (dozens of corporate
-  actions per day) — correctness outranks throughput.
+  actions per day) - correctness outranks throughput.
 
 ## 8. Dependencies & Reliance on Other Services
 
@@ -225,12 +225,12 @@ record-date entitlements would be the future inbound surface.
 
 1. A tenant administrator can list securities for its environment, filtered
    by symbol/type/market, and create a security with unique symbol,
-   existing currency, and precise scales — receiving a full projection
+   existing currency, and precise scales - receiving a full projection
    response.
 2. A client holding only the order-reading scope can read securities but
    cannot create or change them (403 on write paths).
 3. A caller from another environment (or with no tenant context) sees zero
-   rows and cannot insert — verified per table against the shipped schema.
+   rows and cannot insert - verified per table against the shipped schema.
 4. Every endpoint rejects bearer-less or wrongly-scoped calls with 401/403
    and never touches the database on auth failure; errors are plain text and
    never leak SQL internals.
@@ -260,10 +260,10 @@ record-date entitlements would be the future inbound surface.
 ## 10. Open Business Questions
 
 - The customer/location/contact/trader/capitalization master is
-  table-complete but unexposed — which flows need those APIs first
+  table-complete but unexposed - which flows need those APIs first
   (onboarding, entitlements, capitalization checks) is a product call.
-- Who is the authoritative source for corporate-action announcements —
-  manual admin entry, an external feed via Exchange8:VFeeds, or both — and with
+- Who is the authoritative source for corporate-action announcements -
+  manual admin entry, an external feed via Exchange8:VFeeds, or both - and with
   what review/approval workflow before actions become effective.
 - Reconciliation ownership for entitlement snapshots: Exchange8:RefData produces
   the ratio math and the record-date transition events; who owns the
@@ -272,7 +272,7 @@ record-date entitlements would be the future inbound surface.
   markets and books, or are those platform-curated catalogs per vertical.
 - Crypto corporate actions (forks, airdrops, staking rewards) are designed
   at the schema level (`security_type='Crypto'`, `asset_id`) with no
-  action-kind support yet — product timing undecided.
+  action-kind support yet - product timing undecided.
 - Hot-path caching of the security master for matching engines: acceptable
   staleness window and invalidation surface (MemBus state refresh vs
   event-driven re-key) is undecided.

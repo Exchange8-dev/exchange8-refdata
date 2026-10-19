@@ -3,7 +3,7 @@
 -- SPDX-FileCopyrightText: Copyright Contributors to the Exchange8:Refdata
 -- SPDX-License-Identifier: Apache-2.0
 
--- Ex8:RefData — reference data: customers, markets, securities, tick rules,
+-- Ex8:RefData - reference data: customers, markets, securities, tick rules,
 -- calendars, books, corporate actions, identifiers.
 --
 -- Design: design/sentin8-exchange8-data-model-technical-design.md §3.1.
@@ -324,7 +324,7 @@ END $$;
 
 -- ---------------------------------------------------------------------------
 -- Per-service role grants (schema-per-service: this service owns schema
--- `refdata`; grants live in db `exchange8` only — design doc §1).
+-- `refdata`; grants live in db `exchange8` only - design doc §1).
 -- ---------------------------------------------------------------------------
 DO $$
 BEGIN
@@ -337,7 +337,7 @@ BEGIN
 END $$;
 
 -- ---------------------------------------------------------------------------
--- Local outbox (DBX §6.7 — generated from `sentin8_outbox::outbox_table_sql(
+-- Local outbox (DBX §6.7 - generated from `sentin8_outbox::outbox_table_sql(
 -- "refdata")`): rows written in the same DB transaction as the domain change;
 -- the shell's relay (boot step §8b) pushes them to Bus `POST /v1/produce`.
 -- ---------------------------------------------------------------------------
@@ -391,7 +391,7 @@ CREATE TRIGGER outbox_notify_trigger
     EXECUTE FUNCTION refdata.refdata_notify_outbox();
 
 -- ---------------------------------------------------------------------------
--- Local audit journal (DBX §6.8 — generated from
+-- Local audit journal (DBX §6.8 - generated from
 -- `sentin8_audit::audit_journal_sql("refdata")`): rows written in the same
 -- transaction as the domain change; the shell's pusher (boot step §8c) pushes
 -- them to Sys `POST /v1/audit` (`sentin8:sys:audit:write`). A Sys outage

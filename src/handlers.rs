@@ -3,7 +3,7 @@
 // SPDX-FileCopyrightText: Copyright Contributors to the Exchange8:Refdata
 // SPDX-License-Identifier: Apache-2.0
 
-//! Exchange8:RefData data handlers — securities reference-data API.
+//! Exchange8:RefData data handlers - securities reference-data API.
 //!
 //! Every handler follows the platform authorization pipeline (§5): verify
 //! bearer → scope check → RLS context (same connection) → explicit
@@ -23,25 +23,25 @@ use uuid::Uuid;
 
 use sentin8::shell::{err_db, AppState};
 
-/// Scope constants for every handler in this module — single source of truth
+/// Scope constants for every handler in this module - single source of truth
 /// for both the call sites and the authorization matrix tests (see
 /// DESIGN.md §4).
 pub mod scopes {
-    /// `GET /v1/securities` + `GET /v1/securities/{id}` — deliberately
+    /// `GET /v1/securities` + `GET /v1/securities/{id}` - deliberately
     /// multi-scope: order-placers (`exchange8:order:read`) may read
     /// reference data they trade against.
     pub const REFDATA_READ: &str = "exchange8:refdata:read";
     /// `POST /v1/securities` + every mutating handler below (markets,
-    /// corporate actions, tick rules, holidays, books) — the single write
+    /// corporate actions, tick rules, holidays, books) - the single write
     /// vocabulary this service's registration declares for refdata depth.
     pub const REFDATA_WRITE: &str = "exchange8:refdata:write";
     /// Companion read scope accepted by the security list/get guards.
     pub const ORDERS_READ: &str = "exchange8:order:read";
     /// Corporate-action read surface (`GET /v1/corporate-actions`,
-    /// calendar list) — the registration declares the CA vocabulary.
+    /// calendar list) - the registration declares the CA vocabulary.
     pub const CA_READ: &str = "exchange8:corporate-action:read";
     /// Corporate-action mutation surface (`POST /v1/corporate-actions`,
-    /// stage cancel) — kept distinct from REFDATA_WRITE per the
+    /// stage cancel) - kept distinct from REFDATA_WRITE per the
     /// registration's action-granular scopes.
     pub const CA_WRITE: &str = "exchange8:corporate-action:write";
     /// The cron proxy-back transition action (WORKER contract, see
@@ -77,7 +77,7 @@ pub(crate) fn event_identity(
 
 /// The correlation id from the platform middleware (`X-Sentin8-Correlation-
 /// Id` is propagated by the shell's correlation middleware; a missing header
-/// — direct CLI/dev calls — generates one so the envelope stays complete).
+/// - direct CLI/dev calls - generates one so the envelope stays complete).
 fn correlation_from(headers: &axum::http::HeaderMap) -> String {
     headers
         .get("x-sentin8-correlation-id")
@@ -88,7 +88,7 @@ fn correlation_from(headers: &axum::http::HeaderMap) -> String {
 }
 
 /// JSON serialization failure mapping (a FromRow→Value snapshot is
-/// infallible by construction — the mapping exists so `?` stays uniform).
+/// infallible by construction - the mapping exists so `?` stays uniform).
 fn err_db_json(e: serde_json::Error) -> (StatusCode, String) {
     err_db(e)
 }
@@ -121,7 +121,7 @@ pub struct SecurityResponse {
     tag = "refdata",
 )]
 
-/// `GET /v1/securities` — list securities (RLS-scoped).
+/// `GET /v1/securities` - list securities (RLS-scoped).
 pub async fn list_securities(
     State(state): State<Arc<AppState>>,
     headers: axum::http::HeaderMap,
@@ -183,7 +183,7 @@ pub struct CreateSecurityRequest {
     tag = "refdata",
 )]
 
-/// `POST /v1/securities` — create a security (RLS-scoped insert).
+/// `POST /v1/securities` - create a security (RLS-scoped insert).
 pub async fn create_security(
     State(state): State<Arc<AppState>>,
     headers: axum::http::HeaderMap,
@@ -240,7 +240,7 @@ pub async fn create_security(
         ),
         other => err_db(other),
     })?;
-    // Durability pair on the SAME tx: outbox envelope (payload-complete —
+    // Durability pair on the SAME tx: outbox envelope (payload-complete -
     // the full row snapshot) + audit journal row.
     let identity = event_identity(
         a.env_id(),
@@ -283,7 +283,7 @@ pub async fn create_security(
     tag = "refdata",
 )]
 
-/// `GET /v1/securities/{id}` — single lookup.
+/// `GET /v1/securities/{id}` - single lookup.
 pub async fn get_security(
     State(state): State<Arc<AppState>>,
     headers: axum::http::HeaderMap,
@@ -361,7 +361,7 @@ const MARKET_COLUMNS: &str = "id, env_id, code, name, mic, market_code, market_t
     tag = "refdata",
 )]
 
-/// `GET /v1/markets` — list markets (RLS-scoped).
+/// `GET /v1/markets` - list markets (RLS-scoped).
 pub async fn list_markets(
     State(state): State<Arc<AppState>>,
     headers: axum::http::HeaderMap,
@@ -414,7 +414,7 @@ pub struct CreateMarketRequest {
     tag = "refdata",
 )]
 
-/// `POST /v1/markets` + `POST /v1/admin/markets` — create a market.
+/// `POST /v1/markets` + `POST /v1/admin/markets` - create a market.
 pub async fn create_market(
     State(state): State<Arc<AppState>>,
     headers: axum::http::HeaderMap,
@@ -514,7 +514,7 @@ pub struct UpdateMarketRequest {
     tag = "refdata",
 )]
 
-/// `PUT /v1/markets/{id}` — update a market (guarded, full snapshot event).
+/// `PUT /v1/markets/{id}` - update a market (guarded, full snapshot event).
 pub async fn update_market(
     State(state): State<Arc<AppState>>,
     headers: axum::http::HeaderMap,
@@ -670,8 +670,8 @@ async fn ca_gate(
     .map(|_| ())
 }
 
-/// `PUT /v1/securities/{id}` — update mutable security fields. Halting/
-/// trading-state changes are Exchange8:ME's (market control) — the refdata
+/// `PUT /v1/securities/{id}` - update mutable security fields. Halting/
+/// trading-state changes are Exchange8:ME's (market control) - the refdata
 /// update path carries identity/precision/book fields only.
 #[allow(clippy::too_many_arguments)]
 #[utoipa::path(
@@ -759,7 +759,7 @@ pub async fn update_security(
 }
 
 #[derive(Debug, Deserialize)]
-/// Mutable fields of the security update — `None` leaves the column.
+/// Mutable fields of the security update - `None` leaves the column.
 pub struct UpdateSecurityRequest {
     /// ISO identifier.
     pub isin: Option<String>,
@@ -790,7 +790,7 @@ pub struct UpdateSecurityRequest {
     tag = "refdata",
 )]
 
-/// `DELETE /v1/securities/{id}` — remove a security row. Blocked when the
+/// `DELETE /v1/securities/{id}` - remove a security row. Blocked when the
 /// security is referenced (the FK errors map to 409).
 pub async fn delete_security(
     State(state): State<Arc<AppState>>,
@@ -936,7 +936,7 @@ pub struct ListCaQuery {
     tag = "refdata",
 )]
 
-/// `GET /v1/corporate-actions` — list corporate actions (RLS-scoped; the
+/// `GET /v1/corporate-actions` - list corporate actions (RLS-scoped; the
 /// CA lifecycle calendar view).
 pub async fn list_corporate_actions(
     State(state): State<Arc<AppState>>,
@@ -994,7 +994,7 @@ pub struct AnnounceCaRequest {
     tag = "refdata",
 )]
 
-/// `POST /v1/corporate-actions` — announce a corporate action (stage
+/// `POST /v1/corporate-actions` - announce a corporate action (stage
 /// `announced`; outbox `announced` event; audit journal row).
 pub async fn announce_corporate_action(
     State(state): State<Arc<AppState>>,
@@ -1006,7 +1006,7 @@ pub async fn announce_corporate_action(
     if req.ex_date.is_none() {
         return Err((
             StatusCode::UNPROCESSABLE_ENTITY,
-            "ex_date is required — the lifecycle advances on the milestone dates".into(),
+            "ex_date is required - the lifecycle advances on the milestone dates".into(),
         ));
     }
     let correlation_id = correlation_from(&headers);
@@ -1063,7 +1063,7 @@ pub async fn announce_corporate_action(
 
 #[derive(Debug, Deserialize)]
 pub struct CancelCaRequest {
-    /// Optional operator note — captured in the audit journal detail via
+    /// Optional operator note - captured in the audit journal detail via
     /// the cancel message when provided (accepted for the operator UX).
     #[allow(dead_code)]
     pub reason: Option<String>,
@@ -1080,7 +1080,7 @@ pub struct CancelCaRequest {
     tag = "refdata",
 )]
 
-/// `POST /v1/corporate-actions/{id}/cancel` — withdraw an action while it
+/// `POST /v1/corporate-actions/{id}/cancel` - withdraw an action while it
 /// is still `announced` (the stage predicate is the guard: a raced tick
 /// that already advanced makes the cancel a 409). Events + journal in the
 /// same tx.
@@ -1127,7 +1127,7 @@ pub async fn cancel_corporate_action(
         crate::events::AuditOp::Update,
         "corporate_action",
         &id.to_string(),
-        "corporate action cancelled — milestones cleared (stage announced)",
+        "corporate action cancelled - milestones cleared (stage announced)",
         None,
         Some(snapshot),
     )
@@ -1159,7 +1159,7 @@ async fn emit_ca_mutation(
         crate::events::CaOp::Announced => (
             crate::events::AuditOp::Create,
             format!(
-                "corporate action {} ({}) announced — ex_date {}",
+                "corporate action {} ({}) announced - ex_date {}",
                 row.id,
                 row.action_type,
                 row.ex_date.map(|d| d.to_string()).unwrap_or_default()
@@ -1203,7 +1203,7 @@ async fn emit_ca_mutation(
     tag = "refdata",
 )]
 
-/// `GET /v1/corporate-actions/calendar` — the upcoming-action view
+/// `GET /v1/corporate-actions/calendar` - the upcoming-action view
 /// (calendar rows joined to their actions; CA read scope).
 pub async fn list_ca_calendar(
     State(state): State<Arc<AppState>>,
@@ -1262,7 +1262,7 @@ pub struct TickRuleResponse {
     tag = "refdata",
 )]
 
-/// `GET /v1/tick-rules` — list tick rules.
+/// `GET /v1/tick-rules` - list tick rules.
 pub async fn list_tick_rules(
     State(state): State<Arc<AppState>>,
     headers: axum::http::HeaderMap,
@@ -1308,7 +1308,7 @@ pub struct TickBandRequest {
     tag = "refdata",
 )]
 
-/// `POST /v1/tick-rules` — create a tick rule + its bands in one tx
+/// `POST /v1/tick-rules` - create a tick rule + its bands in one tx
 /// (outbox `tick-rule:created` + audit journal row).
 pub async fn create_tick_rule(
     State(state): State<Arc<AppState>>,
@@ -1404,7 +1404,7 @@ pub struct UpdateTickRuleRequest {
     tag = "refdata",
 )]
 
-/// `PUT /v1/tick-rules/{id}` — rename a tick rule (band edits are separate
+/// `PUT /v1/tick-rules/{id}` - rename a tick rule (band edits are separate
 /// writes under the same write scope; renames are the admin-surface
 /// mutation).
 pub async fn update_tick_rule(
@@ -1486,7 +1486,7 @@ pub struct HolidayResponse {
     tag = "refdata",
 )]
 
-/// `POST /v1/holidays` — declare a market holiday (+ per-market closure
+/// `POST /v1/holidays` - declare a market holiday (+ per-market closure
 /// rows; outbox `holiday:created` + audit journal row).
 pub async fn create_holiday(
     State(state): State<Arc<AppState>>,
@@ -1592,7 +1592,7 @@ pub struct BookConnectionResponse {
     tag = "refdata",
 )]
 
-/// `POST /v1/books/connections` — register a book↔connection membership
+/// `POST /v1/books/connections` - register a book↔connection membership
 /// (outbox `book-connection:created` + audit journal row).
 pub async fn create_book_connection(
     State(state): State<Arc<AppState>>,
@@ -1681,8 +1681,8 @@ pub async fn create_book_connection(
     tag = "exchange8-admin",
 )]
 
-/// `GET /v1/admin/ui/{page}` — the RFW page definition (Dash renders it).
-/// Gated on the page's declared Shield action — UI definitions carry no
+/// `GET /v1/admin/ui/{page}` - the RFW page definition (Dash renders it).
+/// Gated on the page's declared Shield action - UI definitions carry no
 /// tenant data; the decision is the step-5 mirror evaluation (the
 /// platform-admin trio rides the live evaluation). Returns 404 for an
 /// undeclared page.
@@ -1713,10 +1713,10 @@ pub async fn admin_ui_page(
 pub struct ScheduleRunRequest {
     pub schedule_id: Option<Uuid>,
     pub schedule_type: String,
-    /// The env the cron row carries — the transition scope.
+    /// The env the cron row carries - the transition scope.
     pub env_id: Uuid,
     pub correlation_id: Option<String>,
-    /// The cron ticker's job idempotency key (`schedule:{id}:{job}`) —
+    /// The cron ticker's job idempotency key (`schedule:{id}:{job}`) -
     /// carried through to the audit trail; the stage transitions dedupe on
     /// their own (action id, target stage) key.
     #[allow(dead_code)]
@@ -1734,14 +1734,14 @@ pub struct ScheduleRunRequest {
     tag = "refdata-internal",
 )]
 
-/// `POST /v1/internal/schedules/run` — Sentin8:Cron proxy-back target for
+/// `POST /v1/internal/schedules/run` - Sentin8:Cron proxy-back target for
 /// the corporate-action transition worker (the platform secrets
 /// precedent: the ticker calls back with its own workload certificate,
 /// verified like any other principal; step 5 evaluates the dedicated
 /// transition action and the mirror admits the cron workload's
 /// `sentin8:cron:write`).
 ///
-/// Returns `{ advanced }` for the schedule's env. A 500 is a DB failure —
+/// Returns `{ advanced }` for the schedule's env. A 500 is a DB failure -
 /// cron retries with backoff and the stage-predicated UPDATE re-runs
 /// (idempotent on `(action id, target stage)`).
 pub async fn internal_schedules_run(
@@ -1837,7 +1837,7 @@ mod scope_matrix {
                 service_type: None,
             },
             // Bearer-path context: no certificate workload on the test
-            // identity (CERTFREE-4V — the field exists for the cert path).
+            // identity (CERTFREE-4V - the field exists for the cert path).
             workload: None,
         }
     }
@@ -1935,7 +1935,7 @@ mod scope_matrix {
             }
         }
         // Every declared constant must be wired into HANDLER_SCOPES. Shared
-        // constants across handlers are legitimate — dedup first.
+        // constants across handlers are legitimate - dedup first.
         all.sort_unstable();
         all.dedup();
         let mut declared = vec![
