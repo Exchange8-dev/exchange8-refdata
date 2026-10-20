@@ -910,10 +910,7 @@ pub async fn delete_security(
     .await
     .map_err(err_db)?;
     ctx.commit().await.map_err(err_db)?;
-    Ok(Json(SecurityDeleteAck {
-        id,
-        deleted: true,
-    }))
+    Ok(Json(SecurityDeleteAck { id, deleted: true }))
 }
 
 /// Shared tail of the security mutation path: the outbox envelope (full

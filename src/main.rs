@@ -22,9 +22,9 @@ mod admin_ui;
 mod crossref;
 mod events;
 mod handlers;
+mod openapi;
 mod refdata;
 mod registration;
-mod openapi;
 mod worker;
 
 use std::sync::Arc;
