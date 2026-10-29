@@ -109,7 +109,7 @@ pub struct SecurityResponse {
     pub qty_scale: i16,
     pub min_size: i32,
 }
-// ── Typed response DTOs (OAPEC-9) ──────────────────────────────────────
+// ── Typed response DTOs ──────────────────────────────────────
 
 /// Security deletion ack.
 #[derive(Debug, serde::Serialize, utoipa::ToSchema)]
@@ -365,15 +365,15 @@ pub async fn get_security(
         .ok_or((StatusCode::NOT_FOUND, "security not found".into()))
 }
 
-// ---------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Authorization matrix tests (see DESIGN.md §9). DB-free: the decision the
 // handlers delegate to (`AuthContext::require_any_scope`) is exercised
 // against the SAME constants the handlers require.
-// ---------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Market + corporate-action + tick-rule + holiday + book-connection
 // surfaces (DESIGN.md §4 mutation breadth). Same pipeline + durability
 // pairs as the security path.
-// ---------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 
 #[derive(Debug, Deserialize, utoipa::ToSchema)]
 pub struct ListMarketsQuery {
@@ -1777,7 +1777,7 @@ pub struct ScheduleRunRequest {
     #[allow(dead_code)]
     pub idempotency_key: Option<String>,
 }
-/// Cron proxy-back acknowledgement (OAPEC-9 typed body).
+/// Cron proxy-back acknowledgement (typed body).
 #[derive(Debug, serde::Serialize, utoipa::ToSchema)]
 pub struct ScheduleRunResponse {
     /// The schedule_type that ran.
@@ -1838,11 +1838,11 @@ pub async fn internal_schedules_run(
     }))
 }
 
-// ---------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 // Authorization matrix tests (see DESIGN.md §9). DB-free: the decision the
 // handlers delegate to (`AuthContext::require_any_scope`) is exercised
 // against the SAME constants the handlers require.
-// ---------------------------------------------------------------------------
+// ------------------------------------------------------------------------
 
 #[cfg(test)]
 mod scope_matrix {
