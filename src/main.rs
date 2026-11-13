@@ -23,6 +23,15 @@ mod crossref;
 mod events;
 mod handlers;
 mod openapi;
+
+// The utoipa dump as a fn pointer for registration.rs (which cannot
+// name crate::openapi - tests embed registration.rs into harness crates
+// with no openapi module; see registration.rs).
+static OPENAPI_DUMP: fn() -> serde_json::Value = || {
+    use utoipa::OpenApi as _;
+    serde_json::to_value(openapi::RefdataOpenApi::openapi()).unwrap_or(serde_json::Value::Null)
+};
+
 mod refdata;
 mod registration;
 mod worker;
