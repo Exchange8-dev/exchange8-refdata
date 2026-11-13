@@ -4293,7 +4293,7 @@ dependencies = [
 [[package]]
 name = "sentin8-config"
 version = "0.1.0"
-source = "git+https://github.com/Sentin8/sentin8-sdk?tag=sdk-v0.6.7#6cbfa13cb6255bc5301153435409e53add320693"
+source = "git+https://github.com/Sentin8/sentin8-sdk?tag=sdk-v0.6.25#2bf3bc4e6ce32e9f3d96b054099c5b35316a3ca4"
 dependencies = [
  "dotenvy",
  "figment",
@@ -4322,8 +4322,8 @@ dependencies = [
 
 [[package]]
 name = "sentin8-cron-client"
-version = "0.1.0"
-source = "git+https://github.com/Sentin8/sentin8-cron?tag=cron-sdk-v0.6.5#101609c427dd82c389dacaa63c778002014192ed"
+version = "1.0.0"
+source = "git+https://github.com/Sentin8/sentin8-cron?tag=cron-sdk-v1.0.0#eb137fc2e1ede85dd50ff73550fc056860d76a31"
 dependencies = [
  "chrono",
  "reqwest 0.12.28",
@@ -4337,8 +4337,8 @@ dependencies = [
 
 [[package]]
 name = "sentin8-cron-contracts"
-version = "0.1.0"
-source = "git+https://github.com/Sentin8/sentin8-cron?tag=cron-sdk-v0.6.5#101609c427dd82c389dacaa63c778002014192ed"
+version = "1.0.0"
+source = "git+https://github.com/Sentin8/sentin8-cron?tag=cron-sdk-v1.0.0#eb137fc2e1ede85dd50ff73550fc056860d76a31"
 dependencies = [
  "chrono",
  "serde",
@@ -4348,8 +4348,8 @@ dependencies = [
 
 [[package]]
 name = "sentin8-cron-sdk"
-version = "0.1.0"
-source = "git+https://github.com/Sentin8/sentin8-cron?tag=cron-sdk-v0.6.5#101609c427dd82c389dacaa63c778002014192ed"
+version = "1.0.0"
+source = "git+https://github.com/Sentin8/sentin8-cron?tag=cron-sdk-v1.0.0#eb137fc2e1ede85dd50ff73550fc056860d76a31"
 dependencies = [
  "sentin8-cron-client",
  "sentin8-cron-contracts",
@@ -4371,7 +4371,7 @@ dependencies = [
 [[package]]
 name = "sentin8-errors"
 version = "0.1.0"
-source = "git+https://github.com/Sentin8/sentin8-sdk?tag=sdk-v0.6.7#6cbfa13cb6255bc5301153435409e53add320693"
+source = "git+https://github.com/Sentin8/sentin8-sdk?tag=sdk-v0.6.25#2bf3bc4e6ce32e9f3d96b054099c5b35316a3ca4"
 dependencies = [
  "anyhow",
  "axum",
@@ -4485,7 +4485,7 @@ dependencies = [
 [[package]]
 name = "sentin8-middleware"
 version = "0.1.0"
-source = "git+https://github.com/Sentin8/sentin8-sdk?tag=sdk-v0.6.7#6cbfa13cb6255bc5301153435409e53add320693"
+source = "git+https://github.com/Sentin8/sentin8-sdk?tag=sdk-v0.6.25#2bf3bc4e6ce32e9f3d96b054099c5b35316a3ca4"
 dependencies = [
  "axum",
  "chrono",
